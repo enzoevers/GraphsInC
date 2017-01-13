@@ -3,7 +3,7 @@
 
 #include "GraphStructure.h"
 
-GRAPH makeGraph(int** edges, int nrEdges, char* vertices, int nrVertices);
+GRAPH* makeGraph(char** edges, int nrEdges, char* vertices, int nrVertices);
 // Varaibles:
 //      edges: A pointer to the a 2D array/matrix were column 0 is the begin vertex and
 //             column 1 is destination vertex.
@@ -17,7 +17,7 @@ GRAPH makeGraph(int** edges, int nrEdges, char* vertices, int nrVertices);
 //       The structure of GRAPH can be found in GraphStructure.h.
 // Return: A graph with attributes found in the GRAPH struct in GraphStructure.h
 
-GRAPH makeWeightedGraph(int** edges, int* weigths, int nrEdges, char* vertices, int nrVertices);
+GRAPH* makeWeightedGraph(char** edges, int* weigths, int nrEdges, char* vertices, int nrVertices);
 // Varaibles:
 //      edges: A pointer to the a 2D array/matrix were column 0 is the begin vertex and
 //             column 1 is destination vertex.
@@ -31,6 +31,10 @@ GRAPH makeWeightedGraph(int** edges, int* weigths, int nrEdges, char* vertices, 
 //       Also the all-pairs shortest path and predecessor matrix is made. 
 //       The structure of GRAPH can be found in GraphStructure.h.
 // Return: A weighted graph with attributes found in the GRAPH struct in GraphStructure.h
+
+int** makeMatrixNxN(int rows, int columns);
+
+int fillAdjacencyMatrix(GRAPH graph);
 
 
 #endif

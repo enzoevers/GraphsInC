@@ -1,6 +1,11 @@
 #include "GraphPathFinding.h"
 #include <stdlib.h>
 
+int test(void)
+{
+    return 123456;
+}
+
 int floyd_warshall(GRAPH* graph)
 {
     if(graph == NULL)
@@ -19,14 +24,15 @@ int floyd_warshall(GRAPH* graph)
         {
             for (j = 0; i < graph->nrVertices; j++) // Take every vertex as a destination vertex.
             {
-                int currentLength = graph->aspMatrix[i][j];
+                int currentWeight = graph->aspMatrix[i][j];
                 int pathWeigthUsingK = graph->aspMatrix[i][k] + graph->aspMatrix[k][j];
-                if(currentLength > pathWeigthUsingK)
+                if(currentWeight > pathWeigthUsingK)
                 {
                     graph->aspMatrix[i][j] = pathWeigthUsingK;
-                    graph->predMatrix[i][j] = graph->vertices[k];
+                    graph->predMatrix[i][j] = graph->predMatrix[k][j];
                 }
             }
         }
     }
+    return 0;
 }

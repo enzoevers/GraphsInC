@@ -8,16 +8,16 @@ typedef struct
 
     char* vertices; // An  array with all names of the vertices.
 
-    int* w; // An array with weigths of edges. The index of the weigths
+    double* weights; // An array with weigths of edges. The index of the weigths
             // correspond to the index of the rows in edges.
 
-    int** edges; // A 2D array with 2 columns. Each row is a edge where
+    char** edges; // A 2D array with 2 columns. Each row is a edge where
                  // column 0 is the start vertex and column 1 is the destination vertex.
 
-    int** adjMatrix; // A pointer to the the adjacency matrix.
+    double** adjMatrix; // A pointer to the the adjacency matrix.
                      // The matrix can be used by adjMatrix[row][column] e.i. adjMatrix[from][to]
     
-    int** aspMatrix; // A pointer to the the all-pairs shortest path matrix.
+    double** aspMatrix; // A pointer to the the all-pairs shortest path matrix.
                     // Each value of aspMatrix[i][j] gives the shortest path weigth from i to j.
                     // The largest value in the matrix if the value isn't NIL is the diameter of the graph.
 

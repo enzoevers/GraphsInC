@@ -1,7 +1,9 @@
 #ifndef PATH_FINDING_H
 #define PATH_FINDING_H
 
-#include "GraphStructure.h"
+#include "../GraphStructure/GraphStructure.h"
+
+int test(void);
 
 int floyd_warshall(GRAPH* graph);
 // Variables:

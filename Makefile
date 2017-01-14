@@ -1,42 +1,61 @@
-ASSIGNMENT=Graph
+#CC=gcc
+#CFLAGS=-I.
 
-SRC_DIR=src
-TEST_DIR=test
-UNITY_FOLDER=Unity
-TEST_INC_DIRS=-I$(UNITY_FOLDER)
+#SYMBOLS=-std=c99
+#TEST_SYMBOLS=$(SYMBOLS) -DTEST
 
-SRC_FILES=$(SRC_DIR)/$(ASSIGNMENT)_main.o \
-          $(SRC_DIR)/File_io.o \
-          $(SRC_DIR)/GraphPathFinding.o \
-          $(SRC_DIR)/GraphSearch.o \
-          $(SRC_DIR)/MakeGraph.o \
-          $(SRC_DIR)/Terminal_io.o 
-		  
+#SRC_DIR=./src
+#TEST_DIR=./test
+#UNITY_DIR=./Unity
+#INC_DIRS		= -I$(SRC_DIR) -I$(UNITY_DIR) 
 
-TEST_FILES=$(UNITY_FOLDER)/unity.c \
-           $(TEST_DIR)/$(ASSIGNMENT)_test.c
+#DEP_FILES=$(SRC_DIR)/*.h
+#OBJ_FILES=$(SRC_DIR)/*.c
+#MAIN_FILES=Graph_main.c
+#$(filter-out $(MAIN_FILES),$(MAIN_FILES))
 
-HEADER_FILES=$(SRC_DIR)/*.h
 
-TEST = $(ASSIGNMENT)_test
+#TEST_DEP_FILES=$(UNITY_DIR)/*.h
+#TEST_FILES=$(TEST_DIR)/*.c\
+           $(OBJ_FILES) \
+           $(UNITY_DIR)/unity.c
 
-CC=gcc
+#%.o: %.c $(DEP_FILES) $(TEST_DEP_FILES)
+#	$(CC) -c -o $@ $< $(CFLAGS)
 
+#TARGETS=Graph Graph_test
+
+#.PHONY: all clean
+
+#all: $(TARGETS)
+
+#Graph: $(SRC_DIR)/Graph_main.o $(OBJ_FILES)
+#	$(CC) $(SYMBOLS) -o $@ $^ $(CFLAGS)
+
+#Graph_test: $(OBJ_FILES)$(TEST_FILES)
+#	$(CC) $(TEST_SYMBOLS) -o $@ $^ $(CFLAGS)
+
+#clean:
+#	rm -f $(TARGETS) $(SRC_DIR)/*.o $(TEST_DIR)/*.o *.tmp
+
+LIBS=src/File_io src/GraphPathFinding src/GraphSearch src/MakeGraph src/Terminal_io
+INCLUDE_PATH=src/
 SYMBOLS=-Wall -Werror -pedantic -O2 -std=c99
-TEST_SYMBOLS=$(SYMBOLS) -DTEST
 
-.PHONY: all clean test
+boardcomputer_exec: libraries
+	gcc $(SYMBOLS) src/Graph_main.c $(wildcard libraries/*) -I$(INCLUDE_PATH) -o Graph
 
-all: $(ASSIGNMENT) $(TEST)
-
-$(ASSIGNMENT): $(SRC_FILES) $(HEADER_FILES) Makefile
-	$(CC) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(ASSIGNMENT)
-
-$(TEST): Makefile $(TEST_FILES)  $(HEADER_FILES)
-	$(CC) $(TEST_INC_DIRS) $(TEST_SYMBOLS) $(TEST_FILES) -o $(TEST)
+libraries:
+	mkdir libraries/
+	for dir in $(LIBS); do \
+		cd $$dir; \
+		gcc -c *.c -I../; \
+		mv *.o ../../libraries; \
+		cd -; \
+	done
 
 clean:
-	rm -f $(ASSIGNMENT) $(TEST)
+	rm -rf libraries/
 
-test: $(TEST)
-	@./$(TEST)
+remove:
+	rm Graph

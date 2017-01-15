@@ -34,4 +34,7 @@ GRAPH* makeWeightedGraph(char** edges, int* weigths, int nrEdges, char* vertices
 //       The structure of GRAPH can be found in GraphStructure.h.
 // Return: A weighted graph with attributes found in the GRAPH struct in GraphStructure.h
 
+int** makeMatrixNxN_double(int rows, int columns);
+char** makeMatrixNxN_char(int rows, int columns);
+
 #endif

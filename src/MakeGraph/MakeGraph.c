@@ -1,4 +1,5 @@
 #include "MakeGraph.h"
+#include "../GraphPathFinding/GraphPathFinding.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,7 +18,7 @@ void clearGraph(GRAPH* graph)
     graph->predMatrix = NULL;
 }
 
-int makeGraph(GRAPH* graph, char** edges, int nrEdges, char* vertices, int nrVertices)
+int makeGraph(GRAPH* graph, char (*edges)[2], int nrEdges, char* vertices, int nrVertices)
 {
 	if(graph == NULL || edges == NULL || vertices == NULL || nrEdges < 1 || nrVertices < 1)
 	{
@@ -30,14 +31,15 @@ int makeGraph(GRAPH* graph, char** edges, int nrEdges, char* vertices, int nrVer
     graph->vertices = vertices;
     graph->edges = edges;
 
-	int** matrixSizeVertices_double = makeMatrixNxN_double(nrVertices, nrVertices);
+	int** matrixSizeVertices_int = makeMatrixNxN_double(nrVertices, nrVertices);
     char** matrixSizeVertices_char = makeMatrixNxN_char(nrVertices, nrVertices);
 
-	graph->adjMatrix = matrixSizeVertices_double;
-	graph->aspMatrix = matrixSizeVertices_double;
+	graph->adjMatrix = matrixSizeVertices_int;
+	graph->aspMatrix = matrixSizeVertices_int;
 	graph->predMatrix = matrixSizeVertices_char;
 
     fillAdjacencyMatrix(graph);
+    //floyd_warshall(graph);
 
 	return 0;
 }
@@ -56,7 +58,7 @@ int** makeMatrixNxN_double(int rows, int columns)
 		matrix[i] = (int*)malloc(columns*sizeof(int));
         for(int k = 0; k < columns; k++)
         {
-            matrix[i][k] = 0;
+            matrix[i][k] = INT_MAX;
         }
 	}
 
@@ -86,14 +88,17 @@ char** makeMatrixNxN_char(int rows, int columns)
 static void fillAdjacencyMatrix(GRAPH* graph)
 {
 	int weight = INT_MAX;
+    char predVertex = '-';
     int i = 0;
     int j = 0;
     int k = 0;
 
     for(i = 0; i < graph->nrVertices; i++)
     {
+        //printf("i = %d\n", i);
     	for (j = 0; j < graph->nrVertices; j++)
     	{
+            //printf("j = %d\n", j);
     		if(i == j)
     		{
     			weight = 0; 
@@ -105,13 +110,14 @@ static void fillAdjacencyMatrix(GRAPH* graph)
     		 	int edgeFound = 0;
     			for (k = 0; k < graph->nrEdges && edgeFound == 0; k++)
     			{
-                    printf("graph->edges[%d][0] = %c\n", k, graph->edges[k][0]);
-    				if(graph->edges[k][0] == i && graph->edges[k][1] == j)
+                    //printf("graph->edges[%d][0] = %c graph->edges[%d][1] = %c\n", k, graph->edges[k][0], k, graph->edges[k][1]);
+    				if(graph->edges[k][0] == graph->vertices[i] && graph->edges[k][1] == graph->vertices[j])
     				{
+                        predVertex = graph->vertices[i];
                         // Determine is the graph has a weights array.
                         // If not the default weights of an edge will be 1.
     					weight = (graph->weights == NULL) ? 1 : graph->weights[i];
-                        printf("Weight[%d][%d] = %d\n", i, j, weight);
+                        //printf("Weight[%d][%d] = %d\n", i, j, weight);
     					edgeFound = 1; // Set the flag to break out of the for-loop.
     				}
     			}
@@ -120,11 +126,15 @@ static void fillAdjacencyMatrix(GRAPH* graph)
                 if(edgeFound == 0)
                 {
                     weight = INT_MAX;
+                    predVertex = '-';
                 }
     		}
 
-            // Assign the weight to the right place in the adjacency matrix.
+            // Assign the weight to the right place in the adjacency and all-pairs shortest path matrix
+            // And assing prevevious vertex to the right place in the predecessor matrix.
+            graph->predMatrix[i][j] = predVertex;
     		graph->adjMatrix[i][j] = weight;
+            graph->aspMatrix[i][j] = weight;
     	}
     }
 }

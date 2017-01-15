@@ -11,8 +11,8 @@ typedef struct
     int* weights; // An array with weigths of edges. The index of the weigths
             // correspond to the index of the rows in edges.
 
-    char** edges; // A 2D array with 2 columns. Each row is a edge where
-                 // column 0 is the start vertex and column 1 is the destination vertex.
+    char (*edges)[2]; // A 2D array with 2 columns. Each row is a edge where
+                      // column 0 is the start vertex and column 1 is the destination vertex.
 
     int** adjMatrix; // A pointer to the the adjacency matrix.
                      // The matrix can be used by adjMatrix[row][column] e.i. adjMatrix[from][to]

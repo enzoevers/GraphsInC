@@ -1,11 +1,6 @@
 #include "GraphPathFinding.h"
 #include <stdlib.h>
 
-int test(void)
-{
-    return 123456;
-}
-
 int floyd_warshall(GRAPH* graph)
 {
     if(graph == NULL)
@@ -22,7 +17,7 @@ int floyd_warshall(GRAPH* graph)
         for (i = 0; i < graph->nrVertices; i++) // For each vertex check if the shorted path from i to j
                                                 // is shorter in the last aspMatrix using K as a relax vertex.
         {
-            for (j = 0; i < graph->nrVertices; j++) // Take every vertex as a destination vertex.
+            for (j = 0; j < graph->nrVertices; j++) // Take every vertex as a destination vertex.
             {
                 int currentWeight = graph->aspMatrix[i][j];
                 int pathWeigthUsingK = graph->aspMatrix[i][k] + graph->aspMatrix[k][j];

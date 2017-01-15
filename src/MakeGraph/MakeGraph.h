@@ -5,7 +5,7 @@
 
 void clearGraph(GRAPH* graph);
 
-int makeGraph(GRAPH* graph, char** edges, int nrEdges, char* vertices, int nrVertices);
+int makeGraph(GRAPH* graph, char (*edges)[2], int nrEdges, char* vertices, int nrVertices);
 // Varaibles:
 //      edges: A pointer to the a 2D array/matrix were column 0 is the begin vertex and
 //             column 1 is destination vertex.

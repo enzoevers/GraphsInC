@@ -3,8 +3,6 @@
 
 #include "../GraphStructure/GraphStructure.h"
 
-int test(void);
-
 int floyd_warshall(GRAPH* graph);
 // Variables:
 //     graph: The graph of which the all pairs shorted path and

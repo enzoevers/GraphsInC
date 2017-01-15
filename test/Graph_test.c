@@ -8,12 +8,17 @@
 
 GRAPH graph;
 
-double** matrix_double = NULL;
-char** matrix_char = NULL;
+char* vertices = NULL; 
+char** edges = NULL;
 
 void setUp(void)
 {
 	clearGraph(&graph);
+	char verticesInReal[] = {'1', '2', '3', '4'};
+	char edgesInreal[][] = {{'1', '2'}. {'3', '4'}};
+
+	vertices = (char**)verticesInReal;
+	edges = (char**)edgesInreal;
 }
 
 void tearDown(void)
@@ -32,6 +37,10 @@ void testUnity(void)
 //===================================//
 
 //===================================makeGraph===================================//
+void make_a_graph(void)
+{
+	TEST_ASSERT_EQUAL(1, MakeGraph(&graph, ))
+}
 
 
 

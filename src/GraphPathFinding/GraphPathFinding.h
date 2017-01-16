@@ -12,4 +12,6 @@ int floyd_warshall(GRAPH* graph);
 // Retun: 0 on succes.
 //       -1 when graph is null or an error occured.
 
+char* getShortestPath(GRAPH* graph, char startVertex, char destinationVertex, int* nrVerticesInPath);
+
 #endif

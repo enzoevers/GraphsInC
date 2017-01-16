@@ -19,7 +19,7 @@ int makeGraph(GRAPH* graph, char (*edges)[2], int nrEdges, char* vertices, int n
 //       The structure of GRAPH can be found in GraphStructure.h.
 // Return: A graph with attributes found in the GRAPH struct in GraphStructure.h
 
-GRAPH* makeWeightedGraph(char** edges, int* weigths, int nrEdges, char* vertices, int nrVertices);
+int makeWeightedGraph(GRAPH* graph, char (*edges)[2], int* weights, int nrEdges, char* vertices, int nrVertices);
 // Varaibles:
 //      edges: A pointer to the a 2D array/matrix were column 0 is the begin vertex and
 //             column 1 is destination vertex.
@@ -34,7 +34,7 @@ GRAPH* makeWeightedGraph(char** edges, int* weigths, int nrEdges, char* vertices
 //       The structure of GRAPH can be found in GraphStructure.h.
 // Return: A weighted graph with attributes found in the GRAPH struct in GraphStructure.h
 
-int** makeMatrixNxN_double(int rows, int columns);
+int** makeMatrixNxN_int(int rows, int columns);
 char** makeMatrixNxN_char(int rows, int columns);
 
 #endif

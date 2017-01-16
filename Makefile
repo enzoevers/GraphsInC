@@ -40,16 +40,16 @@
 
 LIBS=src/File_io src/GraphPathFinding src/GraphSearch src/MakeGraph src/Terminal_io
 INCLUDE_PATH=src/
-SYMBOLS=-Wall -Werror -pedantic -O2 -std=c99
+SYMBOLS=-Wall -Werror -O2 -std=c99
 
 boardcomputer_exec: libraries
-	gcc $(SYMBOLS) src/Graph_main.c $(wildcard libraries/*) -I$(INCLUDE_PATH) -o Graph
+	gcc src/Graph_main.c $(wildcard libraries/*) -I$(INCLUDE_PATH) -o Graph
 
 libraries:
 	mkdir libraries/
 	for dir in $(LIBS); do \
 		cd $$dir; \
-		gcc -c *.c -I../; \
+		gcc -c $(SYMBOLS) *.c -I../; \
 		mv *.o ../../libraries; \
 		cd -; \
 	done

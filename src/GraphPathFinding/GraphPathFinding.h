@@ -3,8 +3,6 @@
 
 #include "../GraphStructure/GraphStructure.h"
 
-int test(void);
-
 int floyd_warshall(GRAPH* graph);
 // Variables:
 //     graph: The graph of which the all pairs shorted path and
@@ -13,5 +11,7 @@ int floyd_warshall(GRAPH* graph);
 // Post: aspMatrix and predMatrix of the graph is assigned.
 // Retun: 0 on succes.
 //       -1 when graph is null or an error occured.
+
+char* getShortestPath(GRAPH* graph, char startVertex, char destinationVertex, int* nrVerticesInPath);
 
 #endif

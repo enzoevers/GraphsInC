@@ -4,6 +4,7 @@
 typedef struct
 {
     char* name; // A name for the graph to recognize it.
+    int nameLength;
 
     int nrVertices;
     int nrEdges;

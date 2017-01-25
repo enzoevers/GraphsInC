@@ -5,7 +5,7 @@
 
 void clearGraph(GRAPH* graph);
 
-int makeGraph(GRAPH* graph, char* name, char (*edges)[2], int nrEdges, char* vertices, int nrVertices);
+int makeGraph(GRAPH* graph, char* name, int nameLength, char (*edges)[2], int nrEdges, char* vertices, int nrVertices);
 // Varaibles:
 //      edges: A pointer to the a 2D array/matrix were column 0 is the begin vertex and
 //             column 1 is destination vertex.
@@ -19,7 +19,7 @@ int makeGraph(GRAPH* graph, char* name, char (*edges)[2], int nrEdges, char* ver
 //       The structure of GRAPH can be found in GraphStructure.h.
 // Return: A graph with attributes found in the GRAPH struct in GraphStructure.h
 
-int makeWeightedGraph(GRAPH* graph, char* name, char (*edges)[2], int* weights, int nrEdges, char* vertices, int nrVertices);
+int makeWeightedGraph(GRAPH* graph, char* name, int nameLength, char (*edges)[2], int* weights, int nrEdges, char* vertices, int nrVertices);
 // Varaibles:
 //      edges: A pointer to the a 2D array/matrix were column 0 is the begin vertex and
 //             column 1 is destination vertex.

@@ -3,13 +3,15 @@
 
 typedef struct
 {
+    char* name; // A name for the graph to recognize it.
+
     int nrVertices;
     int nrEdges;
 
     char* vertices; // An  array with all names of the vertices.
 
     int* weights; // An array with weigths of edges. The index of the weigths
-            // correspond to the index of the rows in edges.
+                  // correspond to the index of the rows in edges.
 
     char (*edges)[2]; // A 2D array with 2 columns. Each row is a edge where
                       // column 0 is the start vertex and column 1 is the destination vertex.

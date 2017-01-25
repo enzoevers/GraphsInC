@@ -66,20 +66,77 @@
 // NOTE: that each column in the matrices have the width of the longest character array in the column.
 // Also note that all properties of the graph end with ';'. This is necessary for reading the file in.
 
-int writeCompleteGraph(char* filename, GRAPH* graph, char mode);
+int writeCompleteGraphStruct(char* filename, GRAPH* graphArray, int nrGraphInArray);
 // Pre: -
-// Post: graph is written to filename using mode.
-//       modes: 'h' (human readable).
-//              'c' (computer readable).
+// Post: nrGraphInArray graphs of graphArray are appended in filename.
+// Return: -1 if filename or graph is NULL or nrGraphInArray < 1.
+//          0 in succes. 
 
-int write_FloydWarshall(char* filename, GRAPH* graph)
+int writeCompleteGraphHumanReadable(char* filename, GRAPH* graph);
 // Pre: -
-// Post: The Floyd-Warshall matrix if the graph is written to the file.
+// Post: all attributes of graph (see GraphStructure) are written to filename.
+//       Whatever was in filename will be overwritten.
+// Return: -1 if filename or graph is NULL.
+//          0 in succes. 
+
+int write_name(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The name of the graph is written to the file.
+//       - If the filename doesn't exist the file is made and the name is written. 
+//       - If filename does exist the name is written to the correct place. (see format above).
+//         
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
+//          0 in succes.
+
+int write_vericesAndEdges(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The vertices and edges of the graph are written to the file.
+//       - If the filename doesn't exist the file is made and the vertices and edges are written. 
+//       - If filename does exist the vertices and edges are written to the correct place. (see format above).
+//         
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
+//          0 in succes.
+
+int write_adjacencyMatrix(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The adjacency matrix of the graph is written to the file.
+//       - If the filename doesn't exist the file is made and the matrix is written. 
+//       - If filename does exist the adjacency matrix is written to the correct place. (see format above).
+//         
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
+//          0 in succes.
+
+int write_FloydWarshall(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The Floyd-Warshall matrix of the graph is written to the file.
 //       - If the filename doesn't exist the file is made and the matrix is written. 
 //       - If filename does exist the Floyd-Warshall matrix is written to the correct place. (see format above).
 //         
-// Return: -1 if file couldn't be made or opened, filename is NULL or graph is NULL.
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
 //          0 in succes.
 
-int 
+int write_predecessorMatrix(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The predecessor matrix of the graph is written to the file.
+//       - If the filename doesn't exist the file is made and the matrix is written. 
+//       - If filename does exist the predecessor matrix is written to the correct place. (see format above).
+//         
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
+//          0 in succes.
+
+int readGraphFromStructFile(char* filename, GRAPH* graphArray, int graphArraySize, int nrGraphsToRead); 
+// Pre: -
+// Post: nrGraphsToRead are read from filename into graphArray. 
+//       If nrGraphsToRead > graphArraySize only nrGraphsToRead graphs are read.
+//       if nrGraphsToRead > number-of-graphs-in-file only number-of-graphs-in-file graphs are read. 
+// Return: -1 if filename or graphArray is NULL, or graphArraySize or nrGraphsToRead < 1.
+//         Otherwise return number or graphs read.
+
+int readGraphFromHumanReadableFile(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The graph properties described in the file formated as above are read 
+//       and translated into graph.
+// Return: -1 if filename or graph is NULL or filename doens't containthe required (*) properties.
+//          0 on succes.
+
 #endif

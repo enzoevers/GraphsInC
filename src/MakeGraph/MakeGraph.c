@@ -13,6 +13,7 @@ void clearGraph(GRAPH* graph)
     free(graph->aspMatrix);
     free(graph->predMatrix);
 
+    graph->name = NULL;
     graph->nrVertices = 0;
     graph->nrEdges = 0;
     graph->vertices = NULL;
@@ -23,12 +24,12 @@ void clearGraph(GRAPH* graph)
     graph->predMatrix = NULL;
 }
 
-int makeGraph(GRAPH* graph, char (*edges)[2], int nrEdges, char* vertices, int nrVertices)
+int makeGraph(GRAPH* graph, char* name, char (*edges)[2], int nrEdges, char* vertices, int nrVertices)
 {
-	return makeWeightedGraph(graph, edges, NULL, nrEdges, vertices, nrVertices);
+	return makeWeightedGraph(graph, name, edges, NULL, nrEdges, vertices, nrVertices);
 }
 
-int makeWeightedGraph(GRAPH* graph, char (*edges)[2], int* weights, int nrEdges, char* vertices, int nrVertices)
+int makeWeightedGraph(GRAPH* graph, char* name, char (*edges)[2], int* weights, int nrEdges, char* vertices, int nrVertices)
 {
     if(graph == NULL || edges == NULL || vertices == NULL || nrEdges < 1 || nrVertices < 1)
     {
@@ -36,6 +37,7 @@ int makeWeightedGraph(GRAPH* graph, char (*edges)[2], int* weights, int nrEdges,
     }
 
     clearGraph(graph);
+    graph->name = name;
     graph->nrVertices = nrVertices;
     graph->nrEdges = nrEdges;
     graph->vertices = vertices;

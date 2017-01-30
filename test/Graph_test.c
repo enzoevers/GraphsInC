@@ -1,10 +1,12 @@
 #include "unity.h"
+#include "../src/GraphStructure/GraphStructure.h"
 #include "../src/GraphPathFinding/GraphPathFinding.h"
 #include "../src/MakeGraph/MakeGraph.h"
-#include "../src/GraphStructure/GraphStructure.h"
+#include "../src/File_io/File_io.h"
+#include <stdio.h>
 #include <limits.h>
 
-//#define printMatrix
+//#define printMatrix // Uncomment to print the matrices used in the test cases.
 
 // I rather dislike keeping line numbers updated, so I made my own macro to ditch the line number
 #define MY_RUN_TEST(func) RUN_TEST(func, 0)
@@ -12,6 +14,7 @@
 GRAPH graph;
 GRAPH weightedGraph;
 
+char* graphName = "TestGraph";
 int weights[] = {8, 1, 1, 4, 2, 9};
 char vertices[4] = {'0', '1', '2', '3'};
 char edges[][2] = {{'0', '1'}, {'0', '3'}, 
@@ -22,14 +25,26 @@ char edges[][2] = {{'0', '1'}, {'0', '3'},
 int nrEdges = sizeof(edges)/sizeof(edges[0]);
 int nrVertices = sizeof(vertices)/sizeof(vertices[0]);
 
+char* testFile_Filled = "testFile_Filled.txt";
+FILE* testFile_Filled_Ptr = NULL;
+char testSentence[] = "What a nice day for some testing isn't it.";
+
 void setUp(void)
 {
-	makeGraph(&graph, edges, nrEdges, vertices, nrVertices);
-	makeWeightedGraph(&weightedGraph, edges, weights, nrEdges, vertices, nrVertices);
+	makeGraph(&graph, graphName, sizeof(graphName), edges, nrEdges, vertices, nrVertices);
+	makeWeightedGraph(&weightedGraph, graphName, sizeof(graphName), edges, weights, nrEdges, vertices, nrVertices);
+
+	testFile_Filled_Ptr = fopen(testFile_Filled, "w");
+	if(testFile_Filled_Ptr != NULL)
+	{
+		fwrite(testSentence, sizeof(char), sizeof(testSentence), testFile_Filled_Ptr);
+	}
+	fclose(testFile_Filled_Ptr);
 }
 
 void tearDown(void)
 {
+	remove(testFile_Filled);
 }
 
 //===================================//
@@ -274,24 +289,67 @@ static void test_if_shorted_path_is_returned(void)
 	TEST_ASSERT_EQUAL_STRING("0-3-1", shortestPathString_Ptr);
 }
 
+//===================================//
+//              File_io.c            //
+//===================================//
+
+//===================================fileSize===================================//
+static void test_parameters_fileSize(void)
+{
+	TEST_ASSERT_EQUAL(-1, fileSize(NULL));
+}
+
+static void test_if_fileSize_is_returned(void)
+{
+	TEST_ASSERT_EQUAL(sizeof(testSentence), fileSize(testFile_Filled));
+}
+
+//===================================findInFile===================================//
+static void test_parameters_findInFile(void)
+{
+	TEST_ASSERT_EQUAL(-1, findInFile(NULL, "day", 3));
+	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, NULL, 3));
+	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, "day", 0));
+}
+
+static void test_if_word_can_be_found_in_file(void)
+{
+	TEST_ASSERT_EQUAL(12, findInFile(testFile_Filled, "day", 3));
+}
+
+static void test_if_minus1_is_returned_if_word_does_not_occurre(void)
+{
+	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, "nope", 4));
+}
+
+
 int main (int argc, char * argv[])
 {
     UnityBegin();
 
     //printInfo();
     
-    //===================================makeGraph===================================//
+    printf("\n//=====makeGraph=====//\n");
     MY_RUN_TEST(test_adjMatrix_of_made_graph);
     MY_RUN_TEST(test_aspMatrix_of_made_graph);
     MY_RUN_TEST(test_predMatrix_of_made_graph);
 
-    //===================================makeWeightedGraph===================================//
+    printf("\n//=====makeWeightedGraph=====//\n");
     MY_RUN_TEST(test_adjMatrix_of_made_graph_weighted);
     MY_RUN_TEST(test_aspMatrix_of_made_graph_weighted);
     MY_RUN_TEST(test_predMatrix_of_made_graph_weighted);
     
-    //===================================getShortestPath===================================//
+    printf("\n//=====getShortestPath=====//\n");
     MY_RUN_TEST(test_if_shorted_path_is_returned);
+
+    printf("\n//=====fileSize=====//\n");
+    MY_RUN_TEST(test_parameters_fileSize);
+    MY_RUN_TEST(test_if_fileSize_is_returned);
+
+    printf("\n//=====findInFile=====//\n");
+    MY_RUN_TEST(test_parameters_findInFile);
+    MY_RUN_TEST(test_if_word_can_be_found_in_file);
+    MY_RUN_TEST(test_if_minus1_is_returned_if_word_does_not_occurre);
 
     return UnityEnd();
 }

@@ -2,6 +2,7 @@
 #define FILE_IO_H
 
 #include "../GraphStructure/GraphStructure.h"
+#include <stdio.h>
 
 // STRUCTURE OF GRAPH-FILE
 // This programs features two possible ways to write a graph to a file:
@@ -138,5 +139,22 @@ int readGraphFromHumanReadableFile(char* filename, GRAPH* graph);
 //       and translated into graph.
 // Return: -1 if filename or graph is NULL or filename doens't containthe required (*) properties.
 //          0 on succes.
+
+long fileSize(char* filename);
+// Pre: -
+// Post: The number of bytes in the file is determined and returned.
+// Return: -1 if filePtr is NULL.
+//          Otherwise the number of bytes in filePtr.
+
+long findInFile(char* filename, char* stringToFind, int stringLength);
+// Pre: -
+// Post: The index of the first occurrence of stringToFind in filePtr is determined.
+// Return: -1 if filePtr or stringToFind is NULL or stringLength < 1.
+//          The index if the first occurrence of stringToFind is returned otherwise.
+
+int copyFile(char* originalFilename, FILE* tempFile, long cpyFrom, long cpyTo);
+// Pre: -
+// Post:
+// Return:
 
 #endif

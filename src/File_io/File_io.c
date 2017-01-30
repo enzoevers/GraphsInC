@@ -1,49 +1,100 @@
 #include "File_io.h"
-#include <stdio.h>
 #include <string.h>
 
 // Returns the number of bytes in a file.
-static long fileSize(FILE* filePtr)
+long fileSize(char* filename)
 {
+	if(filename == NULL)
+	{
+		return -1;
+	}
+
+	FILE* filePtr = fopen(filename, "r");
+	if(filePtr == NULL)
+	{
+		return -1;
+	}
+
 	fseek(filePtr, 0, SEEK_END);
 	long size = ftell(filePtr);
 	fseek(filePtr, 0, SEEK_SET);
+
+	fclose(filePtr);
+
 	return size;
 }
 
 // Return the index of the first encounter of stringToFind. 
-/*static long findInFile(FILE* filePtr, char* stringToFind, int stringLength)
+long findInFile(char* filename, char* stringToFind, int stringLength)
 {
-	char readString[stringLength];
-	long fileLength = fileSize(filePtr);
+	if(filename == NULL || stringToFind == NULL || stringLength < 1)
+	{
+		return -1;
+	}
+
+	FILE* filePtr = fopen(filename, "r");
+	if(filePtr == NULL)
+	{
+		return -1;
+	}
+
+	char readString[stringLength+1];
+	memset(readString, 0, stringLength);
+	readString[stringLength+1] = '\0';
+
+	long fileLength = fileSize(filename);
 	long index = 0;
+	int freadResult = 0;
 
 	fseek(filePtr, index, SEEK_SET);
-	fread(readString, sizeof(char)*stringLength, 1, filePtr);
-	index++;
+	freadResult = fread(readString, sizeof(char), stringLength, filePtr);
 
-	while(strcmp(readString, stringToFind) != 0 && index + stringLength <= fileLength)
+	while(strncmp(readString, stringToFind, stringLength) != 0 && index + stringLength <= fileLength && freadResult == stringLength)
 	{
-		fseek(filePtr, index, SEEK_SET);
-		fread(readString, sizeof(char)*stringLength, 1, filePtr);
 		index++;
+		fseek(filePtr, index, SEEK_SET);
+		memset(readString, 0, stringLength);
+		freadResult = fread(readString, sizeof(char), stringLength, filePtr);
 	}
 
 	return (index + stringLength > fileLength) ? -1 : index;
-}*/
+}
 
-static int copyFile(FILE* originalFile, FILE* tempFile, long cpyFrom, long cpyTo, long writeFrom, long writeTo)
+int copyFile(char* originalFilename, FILE* tempFile, long cpyFrom, long cpyTo)
 {
+	if(originalFilename == NULL || tempFile == NULL)
+	{
+		return -1;
+	}
+
+	FILE* originalFile = fopen(originalFilename, "r");
+
+	if(originalFile == NULL)
+	{
+		return -1;
+	}
+
+	long originalFile_Size = fileSize(originalFilename);
+
+	if(cpyFrom < 0 || cpyFrom > originalFile_Size || cpyTo < 0 || cpyTo > originalFile_Size)
+	{
+		return -1;
+	}
+
+	// Make sure the file pointers are at the start.
     fseek(originalFile, cpyFrom, SEEK_SET);
-    fseek(tempFile, writeFrom, SEEK_SET);
+    fseek(tempFile, 0, SEEK_SET);
 
 	char charToCopy;
 	int readItems = 0;
-	while(ftell(originalFile) <= cpyTo && ftell(tempFile) <= writeTo)
+	while(ftell(originalFile) <= cpyTo)
 	{	
         readItems = fread(&charToCopy, sizeof(char), 1, originalFile);
 	    fwrite(&charToCopy, sizeof(char), 1, tempFile);
 	}
+
+	fclose(originalFile);
+	fclose(tempFile);
 
 	return readItems;
 }
@@ -131,14 +182,18 @@ int write_name(char* filename, GRAPH* graph)
 	    }
 	}
 
-	long fileLength = fileSize(fileToWrite);
+	long fileLength = fileSize(filename);
 	FILE* tempFile = NULL;
+	// Make a back up from the original file (filename).
 	if(fileLength > 0)
 	{
 		tempFile = tmpfile();
-	    copyFile(fileToWrite, tempFile, 0, fileLength, 0, fileLength);
+	    copyFile(filename, tempFile, 0, fileLength);
 
 	    fclose(fileToWrite);
+
+	    // Reopen the file (filename) so it is truncated to size 0.
+	    // Later tempFile is concatenated to this file.
 	    fileToWrite = fopen(filename, "w+");
 		if(fileToWrite == NULL)
 	    {

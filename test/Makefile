@@ -7,10 +7,12 @@ TEST_FILES=$(UNITY_FOLDER)/unity.c \
            Graph_test.c \
            ../src/GraphPathFinding/GraphPathFinding.c \
            ../src/MakeGraph/MakeGraph.c \
+           ../src/File_io/File_io.c \
 
 
 HEADER_FILES=../src/GraphPathFinding/GraphPathFinding.h \
              ../src/MakeGraph/MakeGraph.h \
+             ../src/File_io/File_io.h \
 
 TEST = $(ASSIGNMENT)_test
 

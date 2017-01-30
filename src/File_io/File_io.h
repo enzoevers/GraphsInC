@@ -157,4 +157,9 @@ int copyFile(char* originalFilename, FILE* tempFile, long cpyFrom, long cpyTo);
 // Post:
 // Return:
 
+int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo);
+// Pre: -
+// Post:
+// Return:
+
 #endif

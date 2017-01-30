@@ -14,7 +14,7 @@
 GRAPH graph;
 GRAPH weightedGraph;
 
-char* graphName = "TestGraph";
+char graphName[] = "TestGraph";
 int weights[] = {8, 1, 1, 4, 2, 9};
 char vertices[4] = {'0', '1', '2', '3'};
 char edges[][2] = {{'0', '1'}, {'0', '3'}, 
@@ -24,6 +24,8 @@ char edges[][2] = {{'0', '1'}, {'0', '3'},
 
 int nrEdges = sizeof(edges)/sizeof(edges[0]);
 int nrVertices = sizeof(vertices)/sizeof(vertices[0]);
+
+char* fileToWriteGraph = "graphFile.txt";
 
 char* testFile_Filled = "testFile_Filled.txt";
 FILE* testFile_Filled_Ptr = NULL;
@@ -45,6 +47,7 @@ void setUp(void)
 void tearDown(void)
 {
 	remove(testFile_Filled);
+	//remove(fileToWriteGraph);
 }
 
 //===================================//
@@ -322,6 +325,18 @@ static void test_if_minus1_is_returned_if_word_does_not_occurre(void)
 	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, "nope", 4));
 }
 
+//===================================write_name===================================//
+static void test_parameters_write_name(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_name(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_name(fileToWriteGraph, NULL));
+}
+
+static void test_if_name_is_written_in_graph_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_name(fileToWriteGraph, &graph));
+}
+
 
 int main (int argc, char * argv[])
 {
@@ -350,6 +365,10 @@ int main (int argc, char * argv[])
     MY_RUN_TEST(test_parameters_findInFile);
     MY_RUN_TEST(test_if_word_can_be_found_in_file);
     MY_RUN_TEST(test_if_minus1_is_returned_if_word_does_not_occurre);
+
+    printf("\n//=====write_name=====//\n");
+    MY_RUN_TEST(test_parameters_write_name);
+    MY_RUN_TEST(test_if_name_is_written_in_graph_file);
 
     return UnityEnd();
 }

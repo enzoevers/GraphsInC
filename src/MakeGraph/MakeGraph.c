@@ -39,6 +39,7 @@ int makeWeightedGraph(GRAPH* graph, char* name, int nameLength, char (*edges)[2]
 
     clearGraph(graph);
     graph->name = name;
+    graph->nameLength = nameLength;
     graph->nrVertices = nrVertices;
     graph->nrEdges = nrEdges;
     graph->vertices = vertices;

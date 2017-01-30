@@ -1,6 +1,8 @@
 #include "File_io.h"
 #include <string.h>
 
+#include <stdio.h>
+
 // Returns the number of bytes in a file.
 long fileSize(char* filename)
 {
@@ -89,14 +91,51 @@ int copyFile(char* originalFilename, FILE* tempFile, long cpyFrom, long cpyTo)
 	int readItems = 0;
 	while(ftell(originalFile) <= cpyTo)
 	{	
-        readItems = fread(&charToCopy, sizeof(char), 1, originalFile);
+        readItems += fread(&charToCopy, sizeof(char), 1, originalFile);
 	    fwrite(&charToCopy, sizeof(char), 1, tempFile);
 	}
 
 	fclose(originalFile);
-	fclose(tempFile);
 
 	return readItems;
+}
+
+int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo)
+{
+	if(originalFilename == NULL || tempFile == NULL)
+	{
+		return -1;
+	}
+
+	FILE* originalFile = fopen(originalFilename, "a");
+
+	if(originalFile == NULL)
+	{
+		return -1;
+	}
+
+	fseek(tempFile, 0, SEEK_END);
+	long tempFileSize = ftell(tempFile);
+	fseek(tempFile, 0, SEEK_SET);
+
+	if(pstFrom < 0 || pstFrom > tempFileSize || pstTo < 0 || pstTo > tempFileSize)
+	{
+		return -1;
+	}
+
+    fseek(tempFile, pstFrom, SEEK_SET);
+
+	char charToAppend;
+	int appendedItems = 0;
+	while(ftell(tempFile) <= pstTo)
+	{	
+        appendedItems += fread(&charToAppend, sizeof(char), 1, tempFile);
+	    fwrite(&charToAppend, sizeof(char), 1, originalFile);
+	}
+
+	fclose(originalFile);
+
+	return appendedItems;
 }
 
 int writeCompleteGraphStruct(char* filename, GRAPH* graphArray, int nrGraphInArray)
@@ -165,6 +204,7 @@ int write_name(char* filename, GRAPH* graph)
 	FILE* fileToWrite = fopen(filename, "r+");
 	if(fileToWrite == NULL)
 	{
+		printf("r+_ doens't work\n");
 		// If this doesn't work it is probably becouse the file
 		// doesn't exists. Make The file.
 		fileToWrite = fopen(filename, "w");
@@ -187,6 +227,7 @@ int write_name(char* filename, GRAPH* graph)
 	// Make a back up from the original file (filename).
 	if(fileLength > 0)
 	{
+		printf("There is something in the file\n");
 		tempFile = tmpfile();
 	    copyFile(filename, tempFile, 0, fileLength);
 
@@ -201,10 +242,22 @@ int write_name(char* filename, GRAPH* graph)
 	    }
 	}
 
+	printf("%p\n", (void*)fileToWrite);
 	fwrite(graph->name, sizeof(char), graph->nameLength, fileToWrite);
-	//copyFile(tempFile, fileToWrite, 0, fileLength, graph->nameLength+1, graph->nameLength+1 + fileLength);
+	printf("name = %s\n", graph->name);
+
+	if(fileLength > 0)
+	{
+		printf("Appending the tempFile\n");
+		fseek(tempFile, 0, SEEK_END);
+		long tempFileSize = ftell(tempFile);
+		fseek(tempFile, 0, SEEK_SET);
+
+		appendFile(filename, tempFile, 0, tempFileSize);
+	}
 
 	fclose(fileToWrite);
+	//fclose(tempFile);
 	
 	return 0;
 }

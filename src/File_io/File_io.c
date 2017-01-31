@@ -70,14 +70,12 @@ int copyFile(char* originalFilename, FILE* tempFile, long cpyFrom, long cpyTo)
 	}
 
 	FILE* originalFile = fopen(originalFilename, "r");
-
 	if(originalFile == NULL)
 	{
 		return -1;
 	}
 
 	long originalFile_Size = fileSize(originalFilename);
-
 	if(cpyFrom < 0 || cpyFrom > originalFile_Size || cpyTo < 0 || cpyTo > originalFile_Size)
 	{
 		return -1;
@@ -87,19 +85,21 @@ int copyFile(char* originalFilename, FILE* tempFile, long cpyFrom, long cpyTo)
     fseek(originalFile, cpyFrom, SEEK_SET);
     fseek(tempFile, 0, SEEK_SET);
 
-	char charToCopy;
+	char charToCopy = ' ';
 	int readItems = 0;
-	while(ftell(originalFile) <= cpyTo)
-	{	
-        readItems += fread(&charToCopy, sizeof(char), 1, originalFile);
+	while(ftell(originalFile) <= cpyTo && feof(originalFile) <= 0 && charToCopy != '\0')
+	{
+		readItems += fread(&charToCopy, sizeof(char), 1, originalFile);
 	    fwrite(&charToCopy, sizeof(char), 1, tempFile);
 	}
+
+	clearerr(originalFile);
 
 	fclose(originalFile);
 
 	return readItems;
 }
-
+		
 int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo)
 {
 	if(originalFilename == NULL || tempFile == NULL)
@@ -108,7 +108,6 @@ int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo)
 	}
 
 	FILE* originalFile = fopen(originalFilename, "a");
-
 	if(originalFile == NULL)
 	{
 		return -1;
@@ -125,13 +124,15 @@ int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo)
 
     fseek(tempFile, pstFrom, SEEK_SET);
 
-	char charToAppend;
+	char charToAppend = ' ';
 	int appendedItems = 0;
-	while(ftell(tempFile) <= pstTo)
+	while(ftell(tempFile) <= pstTo && feof(tempFile) <= 0 && charToAppend != '\0')
 	{	
-        appendedItems += fread(&charToAppend, sizeof(char), 1, tempFile);
-	    fwrite(&charToAppend, sizeof(char), 1, originalFile);
+		appendedItems += fread(&charToAppend, sizeof(char), 1, tempFile);
+	    fwrite(&charToAppend, sizeof(char), 1, originalFile);     
 	}
+
+	clearerr(tempFile);
 
 	fclose(originalFile);
 
@@ -204,7 +205,6 @@ int write_name(char* filename, GRAPH* graph)
 	FILE* fileToWrite = fopen(filename, "r+");
 	if(fileToWrite == NULL)
 	{
-		printf("r+_ doens't work\n");
 		// If this doesn't work it is probably becouse the file
 		// doesn't exists. Make The file.
 		fileToWrite = fopen(filename, "w");
@@ -227,9 +227,13 @@ int write_name(char* filename, GRAPH* graph)
 	// Make a back up from the original file (filename).
 	if(fileLength > 0)
 	{
-		printf("There is something in the file\n");
 		tempFile = tmpfile();
-	    copyFile(filename, tempFile, 0, fileLength);
+		if(tempFile == NULL)
+		{
+			return -1;
+		}
+
+	    copyFile(filename, tempFile, 0, fileLength-1);
 
 	    fclose(fileToWrite);
 
@@ -242,23 +246,19 @@ int write_name(char* filename, GRAPH* graph)
 	    }
 	}
 
-	printf("%p\n", (void*)fileToWrite);
 	fwrite(graph->name, sizeof(char), graph->nameLength, fileToWrite);
-	printf("name = %s\n", graph->name);
+	fclose(fileToWrite);
 
 	if(fileLength > 0)
 	{
-		printf("Appending the tempFile\n");
 		fseek(tempFile, 0, SEEK_END);
 		long tempFileSize = ftell(tempFile);
 		fseek(tempFile, 0, SEEK_SET);
 
-		appendFile(filename, tempFile, 0, tempFileSize);
+		appendFile(filename, tempFile, 0, tempFileSize-1);
+		fclose(tempFile);
 	}
 
-	fclose(fileToWrite);
-	//fclose(tempFile);
-	
 	return 0;
 }
 // Pre: -

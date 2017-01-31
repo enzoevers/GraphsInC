@@ -4,6 +4,7 @@
 #include "../src/MakeGraph/MakeGraph.h"
 #include "../src/File_io/File_io.h"
 #include <stdio.h>
+#include <string.h>
 #include <limits.h>
 
 //#define printMatrix // Uncomment to print the matrices used in the test cases.
@@ -33,8 +34,8 @@ char testSentence[] = "What a nice day for some testing isn't it.";
 
 void setUp(void)
 {
-	makeGraph(&graph, graphName, sizeof(graphName), edges, nrEdges, vertices, nrVertices);
-	makeWeightedGraph(&weightedGraph, graphName, sizeof(graphName), edges, weights, nrEdges, vertices, nrVertices);
+	makeGraph(&graph, graphName, strlen(graphName), edges, nrEdges, vertices, nrVertices);
+	makeWeightedGraph(&weightedGraph, graphName, strlen(graphName), edges, weights, nrEdges, vertices, nrVertices);
 
 	testFile_Filled_Ptr = fopen(testFile_Filled, "w");
 	if(testFile_Filled_Ptr != NULL)
@@ -335,6 +336,19 @@ static void test_parameters_write_name(void)
 static void test_if_name_is_written_in_graph_file(void)
 {
 	TEST_ASSERT_EQUAL(0, write_name(fileToWriteGraph, &graph));
+
+	//Read the actual name
+	char readName[sizeof(graphName)];
+	readName[sizeof(graphName)-1] = '\0';
+
+	FILE* checkForName = fopen(fileToWriteGraph, "r");
+	if(checkForName != NULL)
+	{
+		TEST_ASSERT_EQUAL(sizeof(readName)-1, fread(readName, sizeof(char), sizeof(readName)-1, checkForName));
+	}
+	fclose(checkForName);
+
+	TEST_ASSERT_EQUAL_STRING(readName, graphName);
 }
 
 

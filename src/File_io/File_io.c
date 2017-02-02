@@ -394,13 +394,6 @@ int write_nrVertices(char* filename, GRAPH* graph)
 
     return 0;
 }
-// Pre: -
-// Post: The nrVertices of the graph are written to the file.
-//       - If the filename doesn't exist the file is made and the nrVertices are written. 
-//       - If filename does exist the nrVertices are written to the correct place. (see format above).
-//         
-// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
-//          0 in succes.
 
 int write_nrEdges(char* filename, GRAPH* graph)
 {
@@ -471,37 +464,167 @@ int write_nrEdges(char* filename, GRAPH* graph)
 
     return 0;
 }
-// Pre: -
-// Post: The nrEdges of the graph are written to the file.
-//       - If the filename doesn't exist the file is made and the nrEdges are written. 
-//       - If filename does exist the nrEdges are written to the correct place. (see format above).
-//         
-// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
-//          0 in succes.
 
 int write_vertices(char* filename, GRAPH* graph)
 {
-	return 0;
+	if(filename == NULL || graph == NULL)
+    {
+        return -1;
+    }
+
+    long fileLength = fileSize(filename);
+
+    FILE* fileToWrite = NULL;
+
+    char* tempFileBeforeProperty_name = "tempFileBeforeProperty.txt";
+    char* tempFileAfterProperty_name = "tempFileAfterProperty.txt";
+    FILE* tempFileBeforeProperty = NULL;
+    FILE* tempFileAfterProperty = NULL;
+    long propertyIndex = -1;
+    long startIndex = -1;
+    long endingIndex = -2;
+
+    if(fileLength > 0)
+    {
+        startIndex = findInFile(filename, "vertices:", 9, 0);
+        propertyIndex = startIndex;
+        if(startIndex < 0)
+        {
+            startIndex = findInFile(filename, "nrEdges:", 8, 0);
+            if(startIndex < 0)
+            {
+                startIndex = findInFile(filename, "nrVertices:", 11, 0);
+                if(startIndex < 0)
+                {
+                    startIndex = findInFile(filename, "Name:", 5, 0);
+                    endingIndex = 0; //Flag for next if statement. 
+                }
+            }
+        }
+        
+        int makeTempFiles_result = makeTempFiles(startIndex, endingIndex, propertyIndex, filename, fileLength,
+        &tempFileBeforeProperty, tempFileBeforeProperty_name, &tempFileAfterProperty, tempFileAfterProperty_name);
+        if(makeTempFiles_result == -1)
+        {
+            return -1;
+        }
+    }
+
+    writeTempFileBeforeProperty(filename, tempFileBeforeProperty_name, tempFileBeforeProperty);
+
+    // Write the nrEdges file.
+    fileToWrite = fopen(filename, "a");
+    if(fileToWrite == NULL)
+    {
+        return -1;
+    }
+
+    fwrite("vertices: ", sizeof(char), 10, fileToWrite);  
+
+    for(int i = 0; i < graph->nrVertices; i++)
+    {
+        fwrite(graph->vertices+i, sizeof(char), 1, fileToWrite);
+        if(i < graph->nrVertices-1)
+        {
+            fwrite(", ", sizeof(char), 2, fileToWrite);
+        }
+    }
+    fwrite(";\n", sizeof(char), 2, fileToWrite);
+
+    fclose(fileToWrite);
+
+    writeTempFileAfterProperty(filename, tempFileAfterProperty_name, tempFileAfterProperty);
+
+    return 0;
 }
-// Pre: -
-// Post: The vertices of the graph are written to the file.
-//       - If the filename doesn't exist the file is made and the vertices are written. 
-//       - If filename does exist the vertices are written to the correct place. (see format above).
-//         
-// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
-//          0 in succes.
 
 int write_edges(char* filename, GRAPH* graph)
 {
+    if(filename == NULL || graph == NULL)
+    {
+        return -1;
+    }
+
+    long fileLength = fileSize(filename);
+
+    FILE* fileToWrite = NULL;
+
+    char* tempFileBeforeProperty_name = "tempFileBeforeProperty.txt";
+    char* tempFileAfterProperty_name = "tempFileAfterProperty.txt";
+    FILE* tempFileBeforeProperty = NULL;
+    FILE* tempFileAfterProperty = NULL;
+    long propertyIndex = -1;
+    long startIndex = -1;
+    long endingIndex = -2;
+
+    if(fileLength > 0)
+    {
+        startIndex = findInFile(filename, "edges:", 6, 0);
+        propertyIndex = startIndex;
+        if(startIndex < 0)
+        {
+            startIndex = findInFile(filename, "vertices:", 9, 0);
+            if(startIndex < 0)
+            {
+                startIndex = findInFile(filename, "nrEdges:", 8, 0);
+                if(startIndex < 0)
+                {
+                    startIndex = findInFile(filename, "nrVertices:", 11, 0);
+                    if(startIndex < 0)
+                    {
+                        startIndex = findInFile(filename, "Name:", 5, 0);
+                        endingIndex = 0; //Flag for next if statement. 
+                    }
+                }
+            }
+        }
+        
+        int makeTempFiles_result = makeTempFiles(startIndex, endingIndex, propertyIndex, filename, fileLength,
+        &tempFileBeforeProperty, tempFileBeforeProperty_name, &tempFileAfterProperty, tempFileAfterProperty_name);
+        if(makeTempFiles_result == -1)
+        {
+            return -1;
+        }
+    }
+
+    writeTempFileBeforeProperty(filename, tempFileBeforeProperty_name, tempFileBeforeProperty);
+
+    // Write the nrEdges file.
+    fileToWrite = fopen(filename, "a");
+    if(fileToWrite == NULL)
+    {
+        return -1;
+    }
+
+    fwrite("edges: ", sizeof(char), 7, fileToWrite);  
+
+    for(int i = 0; i < graph->nrEdges; i++)
+    {
+        if(i > 0)
+        {
+            fwrite("\t\t", sizeof(char), 2, fileToWrite);  
+        }
+        for(int j = 0; j < 2; j++)
+        {
+            fwrite(&(graph->edges[i][j]), sizeof(char), 1, fileToWrite); 
+            if(j == 0)
+            {
+                fwrite("-", sizeof(char), 1, fileToWrite);
+            } 
+            else if(j == 1 && i < graph->nrEdges-1)
+            {
+              fwrite("\n", sizeof(char), 1, fileToWrite);  
+            }
+        }
+    }
+    fwrite(";\n\n", sizeof(char), 2, fileToWrite);
+
+    fclose(fileToWrite);
+
+    writeTempFileAfterProperty(filename, tempFileAfterProperty_name, tempFileAfterProperty);
+
     return 0;
 }
-// Pre: -
-// Post: The edges of the graph are written to the file.
-//       - If the filename doesn't exist the file is made and the edges are written. 
-//       - If filename does exist the edges are written to the correct place. (see format above).
-//         
-// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
-//          0 in succes.
 
 int write_adjacencyMatrix(char* filename, GRAPH* graph)
 {

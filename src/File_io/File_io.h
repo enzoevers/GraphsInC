@@ -19,7 +19,7 @@
 //
 // *nrVertices: (the number of vertices the graph has);                       
 // *nrEdges: (the number of edges the graph has);
-// *vertices: a,b,c,d,etc.;
+// *vertices: a, b, c, d, etc.;
 // *edges: a-b
 //        a-c
 //        c-b

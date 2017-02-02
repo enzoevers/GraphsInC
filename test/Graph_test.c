@@ -358,11 +358,45 @@ static void test_if_name_is_written_first_in_graph_file(void)
 	TEST_ASSERT_EQUAL_STRING(readName, graphName);
 }
 
+//===================================write_nrVertices===================================//
+static void test_parameters_write_nrVertices(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_nrVertices(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_nrVertices(fileToWriteGraph, NULL));
+}
+
+static void test_if_MAX_nrVertices_is_written_in_graph_file(void)
+{
+	graph.nrVertices = 10000;
+	TEST_ASSERT_EQUAL(0, write_nrVertices(fileToWriteGraph, &graph));
+
+	long nrVerticesIndex = findInFile(fileToWriteGraph, "nrVertices: MAX<;", 17, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, nrVerticesIndex);
+}
+
+static void test_if_nrVertices_is_written_in_graph_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_nrVertices(fileToWriteGraph, &graph));
+
+	long nrVerticesIndex = findInFile(fileToWriteGraph, "nrVertices: 4;", 14, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, nrVerticesIndex);
+}
+
+
 //===================================write_nrEdges===================================//
 static void test_parameters_write_nrEdges(void)
 {
 	TEST_ASSERT_EQUAL(-1, write_nrEdges(NULL, &graph));
 	TEST_ASSERT_EQUAL(-1, write_nrEdges(fileToWriteGraph, NULL));
+}
+
+static void test_if_MAX_nrEdges_is_written_in_graph_file(void)
+{
+	graph.nrEdges = 10000;
+	TEST_ASSERT_EQUAL(0, write_nrEdges(fileToWriteGraph, &graph));
+
+	long nrEdgesIndex = findInFile(fileToWriteGraph, "nrEdges: MAX<;", 14, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, nrEdgesIndex);
 }
 
 static void test_if_nrEdges_is_written_in_graph_file(void)
@@ -373,15 +407,37 @@ static void test_if_nrEdges_is_written_in_graph_file(void)
 	TEST_ASSERT_NOT_EQUAL(-1, nrEdgesIndex);
 }
 
-static void test_if_MAX_is_written_in_graph_file(void)
-{
-	graph.nrEdges = 10000;
-	TEST_ASSERT_EQUAL(0, write_nrEdges(fileToWriteGraph, &graph));
 
-	long nrEdgesIndex = findInFile(fileToWriteGraph, "nrEdges: MAX<;", 14, 0);
-	TEST_ASSERT_NOT_EQUAL(-1, nrEdgesIndex);
+//===================================write_vertices===================================//
+static void test_parameters_write_vertices(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_vertices(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_vertices(fileToWriteGraph, NULL));
 }
 
+static void test_if_vertices_are_written_to_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_vertices(fileToWriteGraph, &graph));
+
+	long verticesIndex = findInFile(fileToWriteGraph, "vertices: 0, 1, 2, 3;", 21, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, verticesIndex);
+}
+
+//===================================write_edges===================================//
+static void test_parameters_write_edges(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_edges(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_edges(fileToWriteGraph, NULL));
+}
+
+static void test_if_edges_are_written_to_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_edges(fileToWriteGraph, &graph));
+
+	long edgesIndex = findInFile(fileToWriteGraph, "edges: 0-1\n\t\t0-3\n\t\t1-2\n\t\t2-0\n\t\t3-1\n\t\t3-2;", 41, 0);
+	printf("edgesIndex %ld\n", edgesIndex);
+	TEST_ASSERT_NOT_EQUAL(-1, edgesIndex);
+}
 
 int main (int argc, char * argv[])
 {
@@ -417,10 +473,23 @@ int main (int argc, char * argv[])
     MY_RUN_TEST(test_parameters_write_name);
     MY_RUN_TEST(test_if_name_is_written_first_in_graph_file);
 
+    printf("\n//=====write_nrVertices=====//\n");
+    MY_RUN_TEST(test_parameters_write_nrVertices);
+    MY_RUN_TEST(test_if_MAX_nrVertices_is_written_in_graph_file);
+    MY_RUN_TEST(test_if_nrVertices_is_written_in_graph_file);
+
     printf("\n//=====write_nrEdges=====//\n");
     MY_RUN_TEST(test_parameters_write_nrEdges);
+    MY_RUN_TEST(test_if_MAX_nrEdges_is_written_in_graph_file);
     MY_RUN_TEST(test_if_nrEdges_is_written_in_graph_file);
-    MY_RUN_TEST(test_if_MAX_is_written_in_graph_file);
+
+    printf("\n//=====write_vertices=====//\n");
+    MY_RUN_TEST(test_parameters_write_vertices);
+    MY_RUN_TEST(test_if_vertices_are_written_to_file);
+
+    printf("\n//=====write_edges=====//\n");
+    MY_RUN_TEST(test_parameters_write_edges);
+    MY_RUN_TEST(test_if_edges_are_written_to_file);
 
     return UnityEnd();
 }

@@ -89,11 +89,40 @@ int write_name(char* filename, GRAPH* graph);
 // Return: -1 if file couldn't be made or opened or filename or graph is NULL.
 //          0 in succes.
 
-int write_vericesAndEdges(char* filename, GRAPH* graph);
+int write_nrVertices(char* filename, GRAPH* graph);
 // Pre: -
-// Post: The vertices and edges of the graph are written to the file.
-//       - If the filename doesn't exist the file is made and the vertices and edges are written. 
-//       - If filename does exist the vertices and edges are written to the correct place. (see format above).
+// Post: The nrVertices of the graph are written to the file.
+//       - If the filename doesn't exist the file is made and the nrVertices are written. 
+//       - If filename does exist the nrVertices are written to the correct place. (see format above).
+//         
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
+//          0 in succes.
+
+int write_nrEdges(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The nrEdges of the graph are written to the file.
+//       - If the filename doesn't exist the file is made and the nrEdges are written. 
+//       - If filename does exist the nrEdges are written to the correct place. (see format above).
+//
+// 		 If there would be more than 9999 edges MAX< is written instead.
+//         
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
+//          0 in succes.
+
+int write_vertices(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The vertices of the graph are written to the file.
+//       - If the filename doesn't exist the file is made and the vertices are written. 
+//       - If filename does exist the vertices are written to the correct place. (see format above).
+//         
+// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
+//          0 in succes.
+
+int write_edges(char* filename, GRAPH* graph);
+// Pre: -
+// Post: The edges of the graph are written to the file.
+//       - If the filename doesn't exist the file is made and the edges are written. 
+//       - If filename does exist the edges are written to the correct place. (see format above).
 //         
 // Return: -1 if file couldn't be made or opened or filename or graph is NULL.
 //          0 in succes.
@@ -146,7 +175,7 @@ long fileSize(char* filename);
 // Return: -1 if filePtr is NULL.
 //          Otherwise the number of bytes in filePtr.
 
-long findInFile(char* filename, char* stringToFind, int stringLength);
+long findInFile(char* filename, char* stringToFind, int stringLength, long startIndex);
 // Pre: -
 // Post: The index of the first occurrence of stringToFind in filePtr is determined.
 // Return: -1 if filePtr or stringToFind is NULL or stringLength < 1.
@@ -157,7 +186,7 @@ int copyFile(char* originalFilename, FILE* tempFile, long cpyFrom, long cpyTo);
 // Post:
 // Return:
 
-int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo);
+int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo, int clean);
 // Pre: -
 // Post:
 // Return:

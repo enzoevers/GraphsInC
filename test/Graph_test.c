@@ -48,7 +48,6 @@ void setUp(void)
 void tearDown(void)
 {
 	remove(testFile_Filled);
-	//remove(fileToWriteGraph);
 }
 
 //===================================//
@@ -311,20 +310,22 @@ static void test_if_fileSize_is_returned(void)
 //===================================findInFile===================================//
 static void test_parameters_findInFile(void)
 {
-	TEST_ASSERT_EQUAL(-1, findInFile(NULL, "day", 3));
-	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, NULL, 3));
-	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, "day", 0));
+	TEST_ASSERT_EQUAL(-1, findInFile(NULL, "day", 3, 0));
+	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, NULL, 3, 0));
+	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, "day", 0, 0));
 }
 
 static void test_if_word_can_be_found_in_file(void)
 {
-	TEST_ASSERT_EQUAL(12, findInFile(testFile_Filled, "day", 3));
+	TEST_ASSERT_EQUAL(12, findInFile(testFile_Filled, "day", 3, 0));
 }
 
 static void test_if_minus1_is_returned_if_word_does_not_occurre(void)
 {
-	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, "nope", 4));
+	TEST_ASSERT_EQUAL(-1, findInFile(testFile_Filled, "nope", 4, 0));
 }
+
+// MAKE TESTS WITH DIFFERENT STARTING INDEXES //
 
 //===================================write_name===================================//
 static void test_parameters_write_name(void)
@@ -333,22 +334,52 @@ static void test_parameters_write_name(void)
 	TEST_ASSERT_EQUAL(-1, write_name(fileToWriteGraph, NULL));
 }
 
-static void test_if_name_is_written_in_graph_file(void)
+static void test_if_name_is_written_first_in_graph_file(void)
 {
+	FILE* graphFile_Ptr = fopen(fileToWriteGraph, "w");
+	TEST_ASSERT_NOT_NULL(graphFile_Ptr);
+	TEST_ASSERT_EQUAL(25, fwrite("Name: PreviousNameInFile;", sizeof(char), 25, graphFile_Ptr));
+	fclose(graphFile_Ptr);
+
 	TEST_ASSERT_EQUAL(0, write_name(fileToWriteGraph, &graph));
 
-	//Read the actual name
+	//Read the new name of the graph in the file.
 	char readName[sizeof(graphName)];
 	readName[sizeof(graphName)-1] = '\0';
 
 	FILE* checkForName = fopen(fileToWriteGraph, "r");
 	if(checkForName != NULL)
 	{
-		TEST_ASSERT_EQUAL(sizeof(readName)-1, fread(readName, sizeof(char), sizeof(readName)-1, checkForName));
+		fseek(checkForName, 6, SEEK_SET); // pass "Name: ".
+		TEST_ASSERT_EQUAL(strlen(graphName), fread(readName, sizeof(char), strlen(graphName), checkForName));	
 	}
 	fclose(checkForName);
 
 	TEST_ASSERT_EQUAL_STRING(readName, graphName);
+}
+
+//===================================write_nrEdges===================================//
+static void test_parameters_write_nrEdges(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_nrEdges(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_nrEdges(fileToWriteGraph, NULL));
+}
+
+static void test_if_nrEdges_is_written_in_graph_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_nrEdges(fileToWriteGraph, &graph));
+
+	long nrEdgesIndex = findInFile(fileToWriteGraph, "nrEdges: 6;", 11, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, nrEdgesIndex);
+}
+
+static void test_if_MAX_is_written_in_graph_file(void)
+{
+	graph.nrEdges = 10000;
+	TEST_ASSERT_EQUAL(0, write_nrEdges(fileToWriteGraph, &graph));
+
+	long nrEdgesIndex = findInFile(fileToWriteGraph, "nrEdges: MAX<;", 14, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, nrEdgesIndex);
 }
 
 
@@ -357,6 +388,8 @@ int main (int argc, char * argv[])
     UnityBegin();
 
     //printInfo();
+
+    remove(fileToWriteGraph);
     
     printf("\n//=====makeGraph=====//\n");
     MY_RUN_TEST(test_adjMatrix_of_made_graph);
@@ -382,7 +415,12 @@ int main (int argc, char * argv[])
 
     printf("\n//=====write_name=====//\n");
     MY_RUN_TEST(test_parameters_write_name);
-    MY_RUN_TEST(test_if_name_is_written_in_graph_file);
+    MY_RUN_TEST(test_if_name_is_written_first_in_graph_file);
+
+    printf("\n//=====write_nrEdges=====//\n");
+    MY_RUN_TEST(test_parameters_write_nrEdges);
+    MY_RUN_TEST(test_if_nrEdges_is_written_in_graph_file);
+    MY_RUN_TEST(test_if_MAX_is_written_in_graph_file);
 
     return UnityEnd();
 }

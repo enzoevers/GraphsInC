@@ -3,6 +3,78 @@
 
 #include <stdio.h>
 
+static long fileSizeFromFilePointer(FILE* filePtr)
+{
+    fseek(filePtr, 0, SEEK_END);
+    long filePtrSize = ftell(filePtr);
+    fseek(filePtr, 0, SEEK_SET);
+
+    return filePtrSize;
+}
+
+static void writeTempFileBeforeProperty(char* fileToWriteTo, char* tempFileBeforeProperty_name, FILE* tempFileBeforeProperty)
+{
+    if(tempFileBeforeProperty != NULL)
+    {
+        long tempFileSize = fileSizeFromFilePointer(tempFileBeforeProperty);
+        appendFile(fileToWriteTo, tempFileBeforeProperty, 0, tempFileSize-1, 1);
+
+        fclose(tempFileBeforeProperty);
+    }
+    remove(tempFileBeforeProperty_name);
+}
+
+static void writeTempFileAfterProperty(char* fileToWriteTo, char* tempFileAfterProperty_name, FILE* tempFileAfterProperty)
+{
+    if(tempFileAfterProperty != NULL)
+    {
+        long tempFileSize = fileSizeFromFilePointer(tempFileAfterProperty);
+        appendFile(fileToWriteTo, tempFileAfterProperty, 0, tempFileSize-1, 0);
+
+        fclose(tempFileAfterProperty);
+    }
+    remove(tempFileAfterProperty_name);
+}
+
+static int makeTempFiles(int startIndex, int endingIndex, int propertyIndex, char* filename, int fileLength,
+    FILE** tempFileBeforeProperty, char* tempFileBeforeProperty_name, FILE** tempFileAfterProperty, char* tempFileAfterProperty_name)
+{
+    if(startIndex >= 0)
+    {
+        endingIndex = (endingIndex == 0) ? 1 : 0; // Take the extra \n after "Name: <name>;\n\n" into account.
+        endingIndex += findInFile(filename, ";", 1, startIndex); // Assign the index.
+    }
+
+    if(propertyIndex > 0)
+    {   
+        *tempFileBeforeProperty = fopen(tempFileBeforeProperty_name, "w+");
+        if(*tempFileBeforeProperty == NULL)
+        {
+            return -1;
+        }
+
+        // Copy the file into a temporary file made with tmpfile().
+        // -1 is there to copy everyting up to the index of the first characters of nrEdges but not cupy the 'n'.
+        copyFile(filename, *tempFileBeforeProperty, 0, propertyIndex-1);
+    }
+
+    if(endingIndex+1 != fileLength-1)
+    {
+        *tempFileAfterProperty = fopen(tempFileAfterProperty_name, "w+");
+        if(*tempFileAfterProperty == NULL)
+        {
+            return -1;
+        }
+
+        // Copy the file into a temporary file made with tmpfile().
+        // +2 is there to not copy the ; and \n.
+        // -1 is because fileLength is the number of bytes but the index must be given.
+        copyFile(filename, *tempFileAfterProperty, endingIndex+2, fileLength-1);
+    }   
+
+    return 0;
+}
+
 // Returns the number of bytes in a file.
 long fileSize(char* filename)
 {
@@ -114,9 +186,7 @@ int appendFile(char* originalFilename, FILE* tempFile, long pstFrom, long pstTo,
 		return -1;
 	}
 
-	fseek(tempFile, 0, SEEK_END);
-	long tempFileSize = ftell(tempFile);
-	fseek(tempFile, 0, SEEK_SET);
+    long tempFileSize = fileSizeFromFilePointer(tempFile);
 
 	if(pstFrom < 0 || pstFrom > tempFileSize || pstTo < 0 || pstTo > tempFileSize)
 	{
@@ -250,9 +320,7 @@ int write_name(char* filename, GRAPH* graph)
 	// Was a tempFile made?
 	if(tempFile != NULL)
 	{
-		fseek(tempFile, 0, SEEK_END);
-		long tempFileSize = ftell(tempFile);
-		fseek(tempFile, 0, SEEK_SET);
+        long tempFileSize = fileSizeFromFilePointer(tempFile);
 
 		appendFile(filename, tempFile, 0, tempFileSize-1, 0);
 		fclose(tempFile);
@@ -261,7 +329,71 @@ int write_name(char* filename, GRAPH* graph)
 	return 0;
 }
 
-int write_nrVertices(char* filename, GRAPH* graph);
+int write_nrVertices(char* filename, GRAPH* graph)
+{
+    if(filename == NULL || graph == NULL)
+    {
+        return -1;
+    }
+
+    long fileLength = fileSize(filename);
+
+    FILE* fileToWrite = NULL;
+
+    char* tempFileBeforeProperty_name = "tempFileBeforeProperty.txt";
+    char* tempFileAfterProperty_name = "tempFileAfterProperty.txt";
+    FILE* tempFileBeforeProperty = NULL;
+    FILE* tempFileAfterProperty = NULL;
+    long propertyIndex = -1;
+    long startIndex = -1;
+    long endingIndex = -2;
+
+    if(fileLength > 0)
+    {
+        startIndex = findInFile(filename, "nrVertices:", 11, 0);
+        propertyIndex = startIndex;
+        if(startIndex < 0)
+        {
+            startIndex = findInFile(filename, "Name:", 5, 0);
+            endingIndex = 0; //Flag for next if statement. 
+        }
+        
+        int makeTempFiles_result = makeTempFiles(startIndex, endingIndex, propertyIndex, filename, fileLength,
+        &tempFileBeforeProperty, tempFileBeforeProperty_name, &tempFileAfterProperty, tempFileAfterProperty_name);
+        if(makeTempFiles_result == -1)
+        {
+            return -1;
+        }
+    }
+
+    writeTempFileBeforeProperty(filename, tempFileBeforeProperty_name, tempFileBeforeProperty);
+
+    // Write the nrEdges file.
+    fileToWrite = fopen(filename, "a");
+    if(fileToWrite == NULL)
+    {
+        return -1;
+    }
+
+    char nrVerticesString[5]; // Max number of vertices is 9999.
+    int nrVerticesStringLength = snprintf(nrVerticesString, sizeof(nrVerticesString), "%d", graph->nrVertices);
+
+    // If there would be more than 9999 vertices MAX< is written instead.
+    if(nrVerticesStringLength >= sizeof(nrVerticesString))
+    {
+        nrVerticesStringLength = snprintf(nrVerticesString, sizeof(nrVerticesString), "MAX<");
+    }
+
+    fwrite("nrVertices: ", sizeof(char), 12, fileToWrite);
+    fwrite(nrVerticesString, sizeof(char), nrVerticesStringLength, fileToWrite);
+    fwrite(";\n", sizeof(char), 2, fileToWrite);
+
+    fclose(fileToWrite);
+
+    writeTempFileAfterProperty(filename, tempFileAfterProperty_name, tempFileAfterProperty);
+
+    return 0;
+}
 // Pre: -
 // Post: The nrVertices of the graph are written to the file.
 //       - If the filename doesn't exist the file is made and the nrVertices are written. 
@@ -281,18 +413,18 @@ int write_nrEdges(char* filename, GRAPH* graph)
 
     FILE* fileToWrite = NULL;
 
-    char* tempFileBeforeNrEdges_name = "tempFileBeforeNrEdges.txt";
-    char* tempFileAfterNrEdges_name = "tempFileAfterNrEdges.txt";
-    FILE* tempFileBeforeNrEdges = NULL;
-    FILE* tempFileAfterNrEdges = NULL;
-    long nrEdgesIndex = -1;
+    char* tempFileBeforeProperty_name = "tempFileBeforeProperty.txt";
+    char* tempFileAfterProperty_name = "tempFileAfterProperty.txt";
+    FILE* tempFileBeforeProperty = NULL;
+    FILE* tempFileAfterProperty = NULL;
+    long propertyIndex = -1;
     long startIndex = -1;
     long endingIndex = -2;
 
     if(fileLength > 0)
     {
         startIndex = findInFile(filename, "nrEdges:", 8, 0);
-        nrEdgesIndex = startIndex;
+        propertyIndex = startIndex;
         if(startIndex < 0)
         {
             startIndex = findInFile(filename, "nrVertices:", 11, 0);
@@ -303,51 +435,15 @@ int write_nrEdges(char* filename, GRAPH* graph)
             }
         }
         
-        if(startIndex >= 0)
+        int makeTempFiles_result = makeTempFiles(startIndex, endingIndex, propertyIndex, filename, fileLength,
+        &tempFileBeforeProperty, tempFileBeforeProperty_name, &tempFileAfterProperty, tempFileAfterProperty_name);
+        if(makeTempFiles_result == -1)
         {
-            endingIndex = (endingIndex == 0) ? 1 : 0; // Take the extra \n after "Name: <name>;\n\n" into account.
-            endingIndex += findInFile(filename, ";", 1, startIndex); // Assign the index.
-        }
-
-        if(nrEdgesIndex > 0)
-        {   
-            tempFileBeforeNrEdges = fopen(tempFileBeforeNrEdges_name, "w+");
-            if(tempFileBeforeNrEdges == NULL)
-            {
-                return -1;
-            }
-
-            // Copy the file into a temporary file made with tmpfile().
-            // -1 is there to copy everyting up to the index of the first characters of nrEdges but not cupy the 'n'.
-            copyFile(filename, tempFileBeforeNrEdges, 0, nrEdgesIndex-1);
-        }
-
-        if(endingIndex+1 != fileLength-1)
-        {
-            tempFileAfterNrEdges = fopen(tempFileAfterNrEdges_name, "w+");
-            if(tempFileAfterNrEdges == NULL)
-            {
-                return -1;
-            }
-
-            // Copy the file into a temporary file made with tmpfile().
-            // +2 is there to not copy the ; and \n.
-            // -1 is because fileLength is the number of bytes but the index must be given.
-            copyFile(filename, tempFileAfterNrEdges, endingIndex+2, fileLength-1);
+            return -1;
         }
     }
 
-    // Was a tempFileBeforeNrEdges made?
-    if(tempFileBeforeNrEdges != NULL)
-    {
-        fseek(tempFileBeforeNrEdges, 0, SEEK_END);
-        long tempFileSize = ftell(tempFileBeforeNrEdges);
-        fseek(tempFileBeforeNrEdges, 0, SEEK_SET);
-
-        appendFile(filename, tempFileBeforeNrEdges, 0, tempFileSize-1, 1);
-        fclose(tempFileBeforeNrEdges);
-        remove(tempFileBeforeNrEdges_name);
-    }
+    writeTempFileBeforeProperty(filename, tempFileBeforeProperty_name, tempFileBeforeProperty);
 
     // Write the nrEdges file.
     fileToWrite = fopen(filename, "a");
@@ -371,17 +467,7 @@ int write_nrEdges(char* filename, GRAPH* graph)
 
     fclose(fileToWrite);
 
-    // Was a tempFileAfterNrEdges made?
-    if(tempFileAfterNrEdges != NULL)
-    {
-        fseek(tempFileAfterNrEdges, 0, SEEK_END);
-        long tempFileSize = ftell(tempFileAfterNrEdges);
-        fseek(tempFileAfterNrEdges, 0, SEEK_SET);
-
-        appendFile(filename, tempFileAfterNrEdges, 0, tempFileSize-1, 0);
-        fclose(tempFileAfterNrEdges);
-        remove(tempFileAfterNrEdges_name);
-    }
+    writeTempFileAfterProperty(filename, tempFileAfterProperty_name, tempFileAfterProperty);
 
     return 0;
 }

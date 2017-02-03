@@ -17,11 +17,11 @@ GRAPH weightedGraph;
 
 char graphName[] = "TestGraph";
 int weights[] = {8, 1, 1, 4, 2, 9};
-char vertices[4] = {'0', '1', '2', '3'};
-char edges[][2] = {{'0', '1'}, {'0', '3'}, 
-                   {'1', '2'}, 
-                   {'2', '0'}, 
-                   {'3', '1'}, {'3', '2'}};
+char vertices[4] = {'a', 'b', 'c', 'd'};
+char edges[][2] = {{'a', 'b'}, {'a', 'd'}, 
+                   {'b', 'c'}, 
+                   {'c', 'a'}, 
+                   {'d', 'b'}, {'d', 'c'}};
 
 int nrEdges = sizeof(edges)/sizeof(edges[0]);
 int nrVertices = sizeof(vertices)/sizeof(vertices[0]);
@@ -152,23 +152,23 @@ static void test_predMatrix_of_made_graph(void)
 	#endif
 
 	TEST_ASSERT_EQUAL('-', graph.predMatrix[0][0]);
-	TEST_ASSERT_EQUAL('0', graph.predMatrix[0][1]);
-	TEST_ASSERT_EQUAL('1', graph.predMatrix[0][2]);
-	TEST_ASSERT_EQUAL('0', graph.predMatrix[0][3]);
+	TEST_ASSERT_EQUAL('a', graph.predMatrix[0][1]);
+	TEST_ASSERT_EQUAL('b', graph.predMatrix[0][2]);
+	TEST_ASSERT_EQUAL('a', graph.predMatrix[0][3]);
 
-	TEST_ASSERT_EQUAL('2', graph.predMatrix[1][0]);
+	TEST_ASSERT_EQUAL('c', graph.predMatrix[1][0]);
 	TEST_ASSERT_EQUAL('-', graph.predMatrix[1][1]);
-	TEST_ASSERT_EQUAL('1', graph.predMatrix[1][2]);
-	TEST_ASSERT_EQUAL('0', graph.predMatrix[1][3]);
+	TEST_ASSERT_EQUAL('b', graph.predMatrix[1][2]);
+	TEST_ASSERT_EQUAL('a', graph.predMatrix[1][3]);
 
-	TEST_ASSERT_EQUAL('2', graph.predMatrix[2][0]);
-	TEST_ASSERT_EQUAL('0', graph.predMatrix[2][1]);
+	TEST_ASSERT_EQUAL('c', graph.predMatrix[2][0]);
+	TEST_ASSERT_EQUAL('a', graph.predMatrix[2][1]);
 	TEST_ASSERT_EQUAL('-', graph.predMatrix[2][2]);
-	TEST_ASSERT_EQUAL('0', graph.predMatrix[2][3]);
+	TEST_ASSERT_EQUAL('a', graph.predMatrix[2][3]);
 
-	TEST_ASSERT_EQUAL('2', graph.predMatrix[3][0]);
-	TEST_ASSERT_EQUAL('3', graph.predMatrix[3][1]);
-	TEST_ASSERT_EQUAL('3', graph.predMatrix[3][2]);
+	TEST_ASSERT_EQUAL('c', graph.predMatrix[3][0]);
+	TEST_ASSERT_EQUAL('d', graph.predMatrix[3][1]);
+	TEST_ASSERT_EQUAL('d', graph.predMatrix[3][2]);
 	TEST_ASSERT_EQUAL('-', graph.predMatrix[3][3]);
 }
 
@@ -257,23 +257,23 @@ static void test_predMatrix_of_made_graph_weighted(void)
 	#endif
 
 	TEST_ASSERT_EQUAL('-', weightedGraph.predMatrix[0][0]);
-	TEST_ASSERT_EQUAL('3', weightedGraph.predMatrix[0][1]);
-	TEST_ASSERT_EQUAL('1', weightedGraph.predMatrix[0][2]);
-	TEST_ASSERT_EQUAL('0', weightedGraph.predMatrix[0][3]);
+	TEST_ASSERT_EQUAL('d', weightedGraph.predMatrix[0][1]);
+	TEST_ASSERT_EQUAL('b', weightedGraph.predMatrix[0][2]);
+	TEST_ASSERT_EQUAL('a', weightedGraph.predMatrix[0][3]);
 
-	TEST_ASSERT_EQUAL('2', weightedGraph.predMatrix[1][0]);
+	TEST_ASSERT_EQUAL('c', weightedGraph.predMatrix[1][0]);
 	TEST_ASSERT_EQUAL('-', weightedGraph.predMatrix[1][1]);
-	TEST_ASSERT_EQUAL('1', weightedGraph.predMatrix[1][2]);
-	TEST_ASSERT_EQUAL('0', weightedGraph.predMatrix[1][3]);
+	TEST_ASSERT_EQUAL('b', weightedGraph.predMatrix[1][2]);
+	TEST_ASSERT_EQUAL('a', weightedGraph.predMatrix[1][3]);
 
-	TEST_ASSERT_EQUAL('2', weightedGraph.predMatrix[2][0]);
-	TEST_ASSERT_EQUAL('3', weightedGraph.predMatrix[2][1]);
+	TEST_ASSERT_EQUAL('c', weightedGraph.predMatrix[2][0]);
+	TEST_ASSERT_EQUAL('d', weightedGraph.predMatrix[2][1]);
 	TEST_ASSERT_EQUAL('-', weightedGraph.predMatrix[2][2]);
-	TEST_ASSERT_EQUAL('0', weightedGraph.predMatrix[2][3]);
+	TEST_ASSERT_EQUAL('a', weightedGraph.predMatrix[2][3]);
 
-	TEST_ASSERT_EQUAL('2', weightedGraph.predMatrix[3][0]);
-	TEST_ASSERT_EQUAL('3', weightedGraph.predMatrix[3][1]);
-	TEST_ASSERT_EQUAL('1', weightedGraph.predMatrix[3][2]);
+	TEST_ASSERT_EQUAL('c', weightedGraph.predMatrix[3][0]);
+	TEST_ASSERT_EQUAL('d', weightedGraph.predMatrix[3][1]);
+	TEST_ASSERT_EQUAL('b', weightedGraph.predMatrix[3][2]);
 	TEST_ASSERT_EQUAL('-', weightedGraph.predMatrix[3][3]);
 }
 
@@ -285,11 +285,11 @@ static void test_predMatrix_of_made_graph_weighted(void)
 static void test_if_shorted_path_is_returned(void)
 {
 	int nrVerticesInShortestPath = 0;
-	char* shortestPathString_Ptr = getShortestPath(&weightedGraph, '0', '1', &nrVerticesInShortestPath);
+	char* shortestPathString_Ptr = getShortestPath(&weightedGraph, 'a', 'b', &nrVerticesInShortestPath);
 
 	TEST_ASSERT_EQUAL(3, nrVerticesInShortestPath);
 	TEST_ASSERT_NOT_NULL(shortestPathString_Ptr);
-	TEST_ASSERT_EQUAL_STRING("0-3-1", shortestPathString_Ptr);
+	TEST_ASSERT_EQUAL_STRING("a-d-b", shortestPathString_Ptr);
 }
 
 //===================================//
@@ -419,7 +419,7 @@ static void test_if_vertices_are_written_to_file(void)
 {
 	TEST_ASSERT_EQUAL(0, write_vertices(fileToWriteGraph, &graph));
 
-	long verticesIndex = findInFile(fileToWriteGraph, "vertices: 0, 1, 2, 3;", 21, 0);
+	long verticesIndex = findInFile(fileToWriteGraph, "vertices: a, b, c, d;", 21, 0);
 	TEST_ASSERT_NOT_EQUAL(-1, verticesIndex);
 }
 
@@ -434,9 +434,20 @@ static void test_if_edges_are_written_to_file(void)
 {
 	TEST_ASSERT_EQUAL(0, write_edges(fileToWriteGraph, &graph));
 
-	long edgesIndex = findInFile(fileToWriteGraph, "edges: 0-1\n\t\t0-3\n\t\t1-2\n\t\t2-0\n\t\t3-1\n\t\t3-2;", 41, 0);
-	printf("edgesIndex %ld\n", edgesIndex);
+	long edgesIndex = findInFile(fileToWriteGraph, "edges: a-b\n\t\ta-d\n\t\tb-c\n\t\tc-a\n\t\td-b\n\t\td-c;", 41, 0);
 	TEST_ASSERT_NOT_EQUAL(-1, edgesIndex);
+}
+
+//===================================write_adjacencyMatrix===================================//
+static void test_parameters_write_adjacencyMatrix(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_adjacencyMatrix(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_adjacencyMatrix(fileToWriteGraph, NULL));
+}
+
+static void test_if_adjacencyMatrix_is_written_to_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_adjacencyMatrix(fileToWriteGraph, &graph));
 }
 
 int main (int argc, char * argv[])
@@ -490,6 +501,10 @@ int main (int argc, char * argv[])
     printf("\n//=====write_edges=====//\n");
     MY_RUN_TEST(test_parameters_write_edges);
     MY_RUN_TEST(test_if_edges_are_written_to_file);
+
+    printf("\n//=====write_adjacencyMatrix=====//\n");
+    MY_RUN_TEST(test_parameters_write_adjacencyMatrix);
+    MY_RUN_TEST(test_if_adjacencyMatrix_is_written_to_file);
 
     return UnityEnd();
 }

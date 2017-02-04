@@ -448,7 +448,74 @@ static void test_parameters_write_adjacencyMatrix(void)
 static void test_if_adjacencyMatrix_is_written_to_file(void)
 {
 	TEST_ASSERT_EQUAL(0, write_adjacencyMatrix(fileToWriteGraph, &graph));
+
+	long adjacencyMatrixIndex = findInFile(fileToWriteGraph, 	"ADJACENCY_MATRIX\n"
+																"====================\n"
+																"\t|a\t|b\t|c\t|d\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"a\t|0\t|1\t|-\t|1\t\n"	
+																"__\t_\t_\t_\t_\t\n"
+																"b\t|-\t|0\t|1\t|-\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"c\t|1\t|-\t|0\t|-\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"d\t|-\t|1\t|1\t|0\t\n"
+																"__\t_\t_\t_\t_\t;", 172, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, adjacencyMatrixIndex);
 }
+
+//===================================write_FloydWarshall===================================//
+static void test_parameters_write_FloydWarshall(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_FloydWarshall(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_FloydWarshall(fileToWriteGraph, NULL));
+}
+
+static void test_if_aspMatrix_is_written_to_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_FloydWarshall(fileToWriteGraph, &graph));
+
+	long aspMatrixIndex = findInFile(fileToWriteGraph, 			"FLOYD_WARSHALL\n"
+																"====================\n"
+																"\t|a\t|b\t|c\t|d\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"a\t|0\t|1\t|2\t|1\t\n"	
+																"__\t_\t_\t_\t_\t\n"
+																"b\t|2\t|0\t|1\t|3\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"c\t|1\t|2\t|0\t|2\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"d\t|2\t|1\t|1\t|0\t\n"
+																"__\t_\t_\t_\t_\t;", 170, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, aspMatrixIndex);
+}
+
+//===================================write_predecessorMatrix===================================//
+static void test_parameters_write_predecessorMatrix(void)
+{
+	TEST_ASSERT_EQUAL(-1, write_predecessorMatrix(NULL, &graph));
+	TEST_ASSERT_EQUAL(-1, write_predecessorMatrix(fileToWriteGraph, NULL));
+}
+
+static void test_if_predecessorMatrix_is_written_to_file(void)
+{
+	TEST_ASSERT_EQUAL(0, write_predecessorMatrix(fileToWriteGraph, &graph));
+
+	long predecessorMatrixIndex = findInFile(fileToWriteGraph, 	"PREDECESSOR_MATRIX\n"
+																"====================\n"
+																"\t|a\t|b\t|c\t|d\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"a\t|-\t|a\t|b\t|a\t\n"	
+																"__\t_\t_\t_\t_\t\n"
+																"b\t|c\t|-\t|b\t|a\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"c\t|c\t|a\t|-\t|a\t\n"
+																"__\t_\t_\t_\t_\t\n"
+																"d\t|c\t|d\t|d\t|-\t\n"
+																"__\t_\t_\t_\t_\t;", 174, 0);
+	TEST_ASSERT_NOT_EQUAL(-1, predecessorMatrixIndex);
+}
+
 
 int main (int argc, char * argv[])
 {
@@ -505,6 +572,15 @@ int main (int argc, char * argv[])
     printf("\n//=====write_adjacencyMatrix=====//\n");
     MY_RUN_TEST(test_parameters_write_adjacencyMatrix);
     MY_RUN_TEST(test_if_adjacencyMatrix_is_written_to_file);
+
+    printf("\n//=====write_FloydWarshall=====//\n");
+    MY_RUN_TEST(test_parameters_write_FloydWarshall);
+    MY_RUN_TEST(test_if_aspMatrix_is_written_to_file);
+
+    printf("\n//=====write_predecessorMatrix=====//\n");
+    MY_RUN_TEST(test_parameters_write_predecessorMatrix);
+    MY_RUN_TEST(test_if_predecessorMatrix_is_written_to_file);
+
 
     return UnityEnd();
 }

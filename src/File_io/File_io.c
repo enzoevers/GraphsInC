@@ -2,7 +2,7 @@
 #include <string.h>
 #include <limits.h> // For writing the matrices
 
-#include <stdio.h>
+#include <stdio.h> // !!FOR DEBUG ONLY!!
 
 static long fileSizeFromFilePointer(FILE* filePtr)
 {
@@ -88,6 +88,90 @@ static void writeMatrixRowSeperator(GRAPH* graph, FILE* fileToWrite, int end)
             fwrite(end ? ";" : "\n", sizeof(char), 1, fileToWrite);
         }
     } 
+}
+
+// Return new dst length
+static int convertIntToString(char* dst, int dstLength, int weight)
+{
+    int weightStringLength = 0;
+
+    if(weight == INT_MAX)
+    {
+        dst[0] = '-';
+        dst[1] = '\0';
+        weightStringLength = 1;
+    }
+    else
+    {
+        weightStringLength = snprintf(dst, dstLength, "%d", weight);
+
+        // If there would be more than 9999 vertices '<' is written instead.
+        if(weightStringLength >= dstLength)
+        {
+            weightStringLength = snprintf(dst, dstLength, "<");
+        }
+    }
+
+    return weightStringLength;
+}
+
+static void writeMatrix(GRAPH* graph, FILE* fileToWrite, char mode)
+{
+    for(int i = -1; i < graph->nrVertices; i++)
+    {
+        for(int j = 0; j < graph->nrVertices; j++)
+        {
+            fwrite("|", sizeof(char), 1, fileToWrite);
+
+            if(i == -1)
+            {
+                fwrite(graph->vertices+j, sizeof(char), 1, fileToWrite);
+                fwrite("\t", sizeof(char), 1, fileToWrite);
+                if(j == graph->nrVertices-1)
+                {
+                    fwrite("\n__\t", sizeof(char), 4, fileToWrite);
+                    writeMatrixRowSeperator(graph, fileToWrite, 0);
+                }
+            }
+            else
+            {
+                char weightString[5]; // Max weight is 9999.
+                int weightStringLength = 0;
+
+                switch(mode)
+                {
+                    case '1':
+                        weightStringLength = convertIntToString(weightString, sizeof(weightString), graph->adjMatrix[i][j]);
+                        break;
+
+                    case '2':
+                        weightStringLength = convertIntToString(weightString, sizeof(weightString), graph->aspMatrix[i][j]);
+                        break;
+
+                    case '3':
+                        weightStringLength = 1;
+                        weightString[0] = graph->predMatrix[i][j];
+                        break;
+                }
+
+                fwrite(weightString, sizeof(char), weightStringLength, fileToWrite);
+                fwrite("\t", sizeof(char), 1, fileToWrite);
+
+                if(j == graph->nrVertices-1)
+                {
+                    fwrite("\n__\t", sizeof(char), 4, fileToWrite);
+                    writeMatrixRowSeperator(graph, fileToWrite, (i == graph->nrVertices-1) ? 1 : 0);
+                }
+            }
+        }
+        if(i < graph->nrVertices-1)
+        {
+            fwrite(graph->vertices+(i+1), sizeof(char), 1, fileToWrite);
+            fwrite("\t", sizeof(char), 1, fileToWrite);
+        }
+    }
+    
+    fwrite("\n\n", sizeof(char), 2, fileToWrite);
 }
 
 // Returns the number of bytes in a file.
@@ -632,7 +716,7 @@ int write_edges(char* filename, GRAPH* graph)
             }
         }
     }
-    fwrite(";\n\n", sizeof(char), 2, fileToWrite);
+    fwrite(";\n\n", sizeof(char), 3, fileToWrite);
 
     fclose(fileToWrite);
 
@@ -667,7 +751,6 @@ int write_adjacencyMatrix(char* filename, GRAPH* graph)
         if(startIndex < 0)
         {
             startIndex = findInFile(filename, "edges:", 6, 0);
-            endingIndex = 0; //Flag for empty line separator.
             if(startIndex < 0)
             {
                 startIndex = findInFile(filename, "vertices:", 9, 0);
@@ -684,6 +767,10 @@ int write_adjacencyMatrix(char* filename, GRAPH* graph)
                         }
                     }
                 }
+            }
+            else
+            {
+                endingIndex = 0; //Flag for empty line separator.
             }
         }
         
@@ -705,101 +792,187 @@ int write_adjacencyMatrix(char* filename, GRAPH* graph)
     }
 
     fwrite("ADJACENCY_MATRIX\n====================\n\t", sizeof(char), 39, fileToWrite);  
-
-    for(int i = -1; i < graph->nrVertices; i++)
-    {
-        for(int j = 0; j < graph->nrVertices; j++)
-        {
-            fwrite("|", sizeof(char), 1, fileToWrite);
-
-            if(i == -1)
-            {
-                fwrite(graph->vertices+j, sizeof(char), 1, fileToWrite);
-                fwrite("\t", sizeof(char), 1, fileToWrite);
-                if(j == graph->nrVertices-1)
-                {
-                    fwrite("\n__\t", sizeof(char), 4, fileToWrite);
-                    writeMatrixRowSeperator(graph, fileToWrite, 0);
-                }
-            }
-            else
-            {
-                char weightString[5]; // Max weight is 9999.
-                int weightStringLength = 0;
-
-                if(graph->adjMatrix[i][j] == INT_MAX)
-                {
-                    weightString[0] = '-';
-                    weightString[1] = '\0';
-                    weightStringLength = 1;
-                }
-                else
-                {
-                    weightStringLength = snprintf(weightString, sizeof(weightString), "%d", graph->adjMatrix[i][j]);
-
-                    // If there would be more than 9999 vertices '<'' is written instead.
-                    if(weightStringLength >= sizeof(weightString))
-                    {
-                        weightStringLength = snprintf(weightString, sizeof(weightString), "<");
-                    }
-                }
-
-                fwrite(weightString, sizeof(char), weightStringLength, fileToWrite);
-                fwrite("\t", sizeof(char), 1, fileToWrite);
-
-                if(j == graph->nrVertices-1)
-                {
-                    fwrite("\n__\t", sizeof(char), 4, fileToWrite);
-                    writeMatrixRowSeperator(graph, fileToWrite, (i == graph->nrVertices-1) ? 1 : 0);
-                }
-            }
-        }
-        if(i < graph->nrVertices-1)
-        {
-            fwrite(graph->vertices+(i+1), sizeof(char), 1, fileToWrite);
-            fwrite("\t", sizeof(char), 1, fileToWrite);
-        }
-    }
-    
-    fwrite("\n\n", sizeof(char), 2, fileToWrite);
-
+    writeMatrix(graph, fileToWrite, '1');
     fclose(fileToWrite);
 
     writeTempFileAfterProperty(filename, tempFileAfterProperty_name, tempFileAfterProperty);
 
     return 0;
 }
-// Pre: -
-// Post: The adjacency matrix of the graph is written to the file.
-//       - If the filename doesn't exist the file is made and the matrix is written. 
-//       - If filename does exist the adjacency matrix is written to the correct place. (see format above).
-//         
-// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
-//          0 in succes.
 
 int write_FloydWarshall(char* filename, GRAPH* graph)
 {
+    if(filename == NULL || graph == NULL)
+    {
+        return -1;
+    }
+
+    long fileLength = fileSize(filename);
+
+    FILE* fileToWrite = NULL;
+
+    char* tempFileBeforeProperty_name = "tempFileBeforeProperty.txt";
+    char* tempFileAfterProperty_name = "tempFileAfterProperty.txt";
+    FILE* tempFileBeforeProperty = NULL;
+    FILE* tempFileAfterProperty = NULL;
+    long propertyIndex = -1;
+    long startIndex = -1;
+    long endingIndex = -2;
+
+    if(fileLength > 0)
+    {
+        startIndex = findInFile(filename, "FLOYD_WARSHALL", 14, 0);
+        propertyIndex = startIndex;
+        if(startIndex < 0)
+        {
+            startIndex = findInFile(filename, "ADJACENCY_MATRIX", 16, 0);
+            if(startIndex < 0)
+            {
+                startIndex = findInFile(filename, "edges:", 6, 0);
+                if(startIndex < 0)
+                {
+                    startIndex = findInFile(filename, "vertices:", 9, 0);
+                    if(startIndex < 0)
+                    {
+                        startIndex = findInFile(filename, "nrEdges:", 8, 0);
+                        if(startIndex < 0)
+                        {
+                            startIndex = findInFile(filename, "nrVertices:", 11, 0);
+                            if(startIndex < 0)
+                            {
+                                startIndex = findInFile(filename, "Name:", 5, 0);
+                                endingIndex = 0; //Flag for empty line separator.
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    endingIndex = 0; //Flag for empty line separator.
+                }
+            }
+            else
+            {
+                endingIndex = 0; //Flag for empty line separator.
+            }
+        }
+        
+        int makeTempFiles_result = makeTempFiles(startIndex, endingIndex, propertyIndex, filename, fileLength,
+        &tempFileBeforeProperty, tempFileBeforeProperty_name, &tempFileAfterProperty, tempFileAfterProperty_name);
+        if(makeTempFiles_result == -1)
+        {
+            return -1;
+        }
+    }
+
+    writeTempFileBeforeProperty(filename, tempFileBeforeProperty_name, tempFileBeforeProperty);
+
+    // Write the nrEdges file.
+    fileToWrite = fopen(filename, "a");
+    if(fileToWrite == NULL)
+    {
+        return -1;
+    }
+
+    fwrite("FLOYD_WARSHALL\n====================\n\t", sizeof(char), 37, fileToWrite);  
+    writeMatrix(graph, fileToWrite, '2');
+    fclose(fileToWrite);
+
+    writeTempFileAfterProperty(filename, tempFileAfterProperty_name, tempFileAfterProperty);
+
     return 0;
 }
-// Pre: -
-// Post: The Floyd-Warshall matrix of the graph is written to the file.
-//       - If the filename doesn't exist the file is made and the matrix is written. 
-//       - If filename does exist the Floyd-Warshall matrix is written to the correct place. (see format above).
-//         
-// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
-//          0 in succes.
 
 int write_predecessorMatrix(char* filename, GRAPH* graph)
 {
+    if(filename == NULL || graph == NULL)
+    {
+        return -1;
+    }
+
+    long fileLength = fileSize(filename);
+
+    FILE* fileToWrite = NULL;
+
+    char* tempFileBeforeProperty_name = "tempFileBeforeProperty.txt";
+    char* tempFileAfterProperty_name = "tempFileAfterProperty.txt";
+    FILE* tempFileBeforeProperty = NULL;
+    FILE* tempFileAfterProperty = NULL;
+    long propertyIndex = -1;
+    long startIndex = -1;
+    long endingIndex = -2;
+
+    if(fileLength > 0)
+    {
+        startIndex = findInFile(filename, "PREDECESSOR_MATRIX", 18, 0);
+        propertyIndex = startIndex;
+        if(startIndex < 0)
+        {
+            startIndex = findInFile(filename, "FLOYD_WARSHALL", 14, 0);
+            if(startIndex < 0)
+            {
+                startIndex = findInFile(filename, "ADJACENCY_MATRIX", 16, 0);
+                if(startIndex < 0)
+                {
+                    startIndex = findInFile(filename, "edges:", 6, 0);
+                    if(startIndex < 0)
+                    {
+                        startIndex = findInFile(filename, "vertices:", 9, 0);
+                        if(startIndex < 0)
+                        {
+                            startIndex = findInFile(filename, "nrEdges:", 8, 0);
+                            if(startIndex < 0)
+                            {
+                                startIndex = findInFile(filename, "nrVertices:", 11, 0);
+                                if(startIndex < 0)
+                                {
+                                    startIndex = findInFile(filename, "Name:", 5, 0);
+                                    endingIndex = 0; //Flag for empty line separator.
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        endingIndex = 0; //Flag for empty line separator.
+                    }
+                }
+                else
+                {
+                    endingIndex = 0; //Flag for empty line separator.
+                }
+            }
+            else
+            {
+                endingIndex = 0; //Flag for empty line separator.
+            }
+        }
+        
+        int makeTempFiles_result = makeTempFiles(startIndex, endingIndex, propertyIndex, filename, fileLength,
+        &tempFileBeforeProperty, tempFileBeforeProperty_name, &tempFileAfterProperty, tempFileAfterProperty_name);
+        if(makeTempFiles_result == -1)
+        {
+            return -1;
+        }
+    }
+
+    writeTempFileBeforeProperty(filename, tempFileBeforeProperty_name, tempFileBeforeProperty);
+
+    // Write the nrEdges file.
+    fileToWrite = fopen(filename, "a");
+    if(fileToWrite == NULL)
+    {
+        return -1;
+    }
+
+    fwrite("PREDECESSOR_MATRIX\n====================\n\t", sizeof(char), 41, fileToWrite);  
+    writeMatrix(graph, fileToWrite, '3');
+    fclose(fileToWrite);
+
+    writeTempFileAfterProperty(filename, tempFileAfterProperty_name, tempFileAfterProperty);
+
     return 0;
 }
-// Pre: -
-// Post: The predecessor matrix of the graph is written to the file.
-//       - If the filename doesn't exist the file is made and the matrix is written. 
-//       - If filename does exist the predecessor matrix is written to the correct place. (see format above).
-//         
-// Return: -1 if file couldn't be made or opened or filename or graph is NULL.
-//          0 in succes.
 
 int readGraphFromStructFile(char* filename, GRAPH* graphArray, int graphArraySize, int nrGraphsToRead)
 {
